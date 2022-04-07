@@ -1,0 +1,1 @@
+ls -1 test | awk '{ print "curl -H \"Content-Type: application/json\" -H \"X-GitHub-Event: workflow_run\" -d \"@test/"$1"\" http://localhost:8080/webhook"}' > ../test.sh
