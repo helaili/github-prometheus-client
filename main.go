@@ -14,6 +14,8 @@ import (
 
 var counters = make(map[string]*prometheus.CounterVec)
 var histograms = make(map[string]*prometheus.HistogramVec)
+
+// TODO: use a distributed cache so that we can expire and make the data available to other instances
 var workflowNames = make(map[string]string)
 
 func main() {
@@ -155,6 +157,16 @@ func main() {
 		[]string{"org", "repo", "workflow", "job"},
 	)
 
+	histograms["github_actions_workflow_job_duration"] = promauto.NewHistogramVec(prometheus.HistogramOpts{
+		Namespace: "github_actions",
+		Subsystem: "workflow_job",
+		Name:      "duration",
+		Help:      "The duration of workflow job, equivalent to the billing time",
+		Buckets:   prometheus.LinearBuckets(0, 2, 10),
+	},
+		[]string{"org", "repo", "workflow", "job"},
+	)
+
 	// This is the Prometheus endpoint.
 	http.Handle("/metrics", promhttp.HandlerFor(
 		prometheus.DefaultGatherer,
@@ -247,11 +259,10 @@ func reportWorkflowRunEvent(eventType string, event *github.WorkflowRunEvent) {
 	logWorkflowRunEvent(eventType, event)
 	actionCounter, found := getCounter(eventType, event.GetAction())
 
-	if !found {
-		return
+	if found {
+		cacheWorkflowNames(event)
+		actionCounter.WithLabelValues(event.GetOrg().GetLogin(), event.GetRepo().GetName(), event.GetWorkflow().GetName()).Inc()
 	}
-	cacheWorkflowNames(event)
-	actionCounter.WithLabelValues(event.GetOrg().GetLogin(), event.GetRepo().GetName(), event.GetWorkflow().GetName()).Inc()
 
 	if event.GetAction() == "completed" {
 		conclusionCounter, found := getCounter(eventType, event.GetWorkflowRun().GetConclusion())
@@ -261,7 +272,7 @@ func reportWorkflowRunEvent(eventType string, event *github.WorkflowRunEvent) {
 
 		histogram, found := getHistogram(eventType, "duration")
 		if found {
-			// This is elapse time, not billing time. Billing time is the sum of the time spent in each job.
+			// This is elapse time, not billing time.
 			start := event.GetWorkflowRun().GetCreatedAt().Time
 			end := event.GetWorkflowRun().GetUpdatedAt().Time
 
@@ -272,14 +283,31 @@ func reportWorkflowRunEvent(eventType string, event *github.WorkflowRunEvent) {
 
 func reportWorkflowJobEvent(eventType string, event *github.WorkflowJobEvent) {
 	logWorkflowJobEvent(eventType, event)
-	github_actions_workflow_counter, found := getCounter(eventType, event.GetAction())
-	if !found {
-		return
-	}
+
 	workflowName := getCachedWorkflowNames(fmt.Sprint(event.GetWorkflowJob().GetRunID()))
 	if workflowName == "" {
 		log.Printf("could not find workflow name in cache for workflow run %d\n", event.GetWorkflowJob().GetRunID())
 		return
 	}
-	github_actions_workflow_counter.WithLabelValues(event.GetOrg().GetLogin(), event.GetRepo().GetName(), workflowName, event.GetWorkflowJob().GetName()).Inc()
+
+	actionCounter, found := getCounter(eventType, event.GetAction())
+	if found {
+		actionCounter.WithLabelValues(event.GetOrg().GetLogin(), event.GetRepo().GetName(), workflowName, event.GetWorkflowJob().GetName()).Inc()
+	}
+
+	if event.GetAction() == "completed" {
+		conclusionCounter, found := getCounter(eventType, event.GetWorkflowJob().GetConclusion())
+		if found {
+			conclusionCounter.WithLabelValues(event.GetOrg().GetLogin(), event.GetRepo().GetName(), workflowName, event.GetWorkflowJob().GetName()).Inc()
+		}
+
+		histogram, found := getHistogram(eventType, "duration")
+		if found {
+			// This is the billing time.
+			start := event.GetWorkflowJob().GetStartedAt().Time
+			end := event.GetWorkflowJob().GetCompletedAt().Time
+
+			histogram.WithLabelValues(event.GetOrg().GetLogin(), event.GetRepo().GetName(), workflowName, event.GetWorkflowJob().GetName()).Observe(float64(end.Sub(start).Milliseconds()))
+		}
+	}
 }
