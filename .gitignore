@@ -1,1 +1,4 @@
 github-prometheus-client
+.env*
+.DS_Store
+bin
