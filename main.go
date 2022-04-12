@@ -1,22 +1,48 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strconv"
+
+	"github.com/joho/godotenv"
 
 	"github.com/google/go-github/v43/github"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-var workflowNames = NewWorkflowNameCacheImpl()
-var workflowRunMetrics = NewWorkflowRunMetrics(workflowNames)
-var workflowJobMetrics = NewWorkflowJobMetrics(workflowNames)
+var workflowNames WorkflowNameCache
+var workflowRunMetrics *WorkflowRunMetrics
+var workflowJobMetrics *WorkflowJobMetrics
+var webhook_secret []byte
 
 func main() {
-	var addr = flag.String("listen-address", ":8080", "The address to listen on for HTTP requests.")
+	env := os.Getenv("GITHUB_PROMETHEUS_CLIENT_ENV")
+	if env == "" {
+		env = "development"
+	}
+
+	log.Printf("Starting in %s mode\n", env)
+
+	err := godotenv.Load(".env." + env)
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	godotenv.Load()
+
+	port := os.Getenv("PORT")
+	private_key := os.Getenv("PRIVATE_KEY")
+	app_id, err := strconv.ParseInt(os.Getenv("APP_ID"), 10, 36)
+	if err != nil {
+		log.Fatal("Wrong format for APP_ID")
+	}
+
+	workflowNames = NewWorkflowNameCacheImpl(app_id, []byte(private_key))
+	workflowRunMetrics = NewWorkflowRunMetrics(workflowNames)
+	workflowJobMetrics = NewWorkflowJobMetrics(workflowNames)
 
 	// This is the Prometheus endpoint.
 	http.Handle("/metrics", promhttp.HandlerFor(
@@ -26,11 +52,12 @@ func main() {
 		},
 	))
 
+	webhook_secret = []byte(os.Getenv("WEBHOOK_SECRET"))
 	// This is the GitHub Webhook endpoint.
 	http.HandleFunc("/webhook", webhook)
 
-	fmt.Printf("Listening on address %s\n", *addr)
-	log.Fatal(http.ListenAndServe(*addr, nil))
+	log.Printf("Listening on port %s\n", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
 }
 
 /*
@@ -39,8 +66,7 @@ func main() {
 func webhook(w http.ResponseWriter, req *http.Request) {
 	log.Printf("Received %s event on end point %s\n", req.Header.Get("X-GitHub-Event"), req.URL)
 
-	// TODO: support webhook secret
-	payload, err := github.ValidatePayload(req, []byte(""))
+	payload, err := github.ValidatePayload(req, webhook_secret)
 	if err != nil {
 		log.Printf("error reading request body: err=%s\n", err)
 		return

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/google/go-github/v43/github"
@@ -17,10 +16,10 @@ func NewWorkflowJobMetrics(cache WorkflowNameCache) *WorkflowJobMetrics {
 	m := new(WorkflowJobMetrics)
 	m.counters = make(map[string]*prometheus.CounterVec)
 	m.histograms = make(map[string]*prometheus.HistogramVec)
+	m.cache = cache
 
 	m.intializeCounters()
 	m.intializeHistograms()
-	m.cache = cache
 
 	return m
 }
@@ -32,10 +31,10 @@ func (m WorkflowJobMetrics) log(eventType string, event *github.WorkflowJobEvent
 func (m WorkflowJobMetrics) report(eventType string, event *github.WorkflowJobEvent) {
 	m.log(eventType, event)
 
-	workflowName := m.cache.get(fmt.Sprint(event.GetWorkflowJob().GetRunID()))
+	workflowName := m.cache.get(event)
 	if workflowName == "" {
 		log.Printf("could not find workflow name in cache for workflow run %d\n", event.GetWorkflowJob().GetRunID())
-		return
+		workflowName = "unknown"
 	}
 
 	actionCounter, found := m.getCounter(eventType, event.GetAction())

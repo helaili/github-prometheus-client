@@ -261,5 +261,9 @@
     "received_events_url": "https://api.github.com/users/helaili/received_events",
     "type": "User",
     "site_admin": true
+  },
+  "installation": {
+    "id": 24886277,
+    "node_id": "MDIzOkludGVncmF0aW9uSW5zdGFsbGF0aW9uMjQ4ODYyNzc="
   }
 }
