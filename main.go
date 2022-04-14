@@ -27,10 +27,7 @@ func main() {
 
 	log.Printf("Starting in %s mode\n", env)
 
-	err := godotenv.Load(".env." + env)
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	godotenv.Load(".env." + env)
 	godotenv.Load()
 
 	port := os.Getenv("PORT")
@@ -39,6 +36,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Wrong format for APP_ID")
 	}
+	webhook_secret = []byte(os.Getenv("WEBHOOK_SECRET"))
 
 	workflowNames = NewWorkflowNameCacheImpl(app_id, []byte(private_key))
 	workflowRunMetrics = NewWorkflowRunMetrics(workflowNames)
@@ -52,7 +50,6 @@ func main() {
 		},
 	))
 
-	webhook_secret = []byte(os.Getenv("WEBHOOK_SECRET"))
 	// This is the GitHub Webhook endpoint.
 	http.HandleFunc("/webhook", webhook)
 
