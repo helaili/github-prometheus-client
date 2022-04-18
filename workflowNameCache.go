@@ -34,11 +34,11 @@ func NewWorkflowNameCacheImpl(app_id int64, private_key []byte) *WorkflowNameCac
 }
 
 func (m WorkflowNameCacheImpl) set(event *github.WorkflowRunEvent) {
-	m.workflowNames[fmt.Sprint(event.GetWorkflowRun().GetID())] = event.GetWorkflow().GetName()
+	m.workflowNames[fmt.Sprintf("%d-%d", event.GetInstallation().GetID(), event.GetWorkflowRun().GetID())] = event.GetWorkflow().GetName()
 }
 
 func (m WorkflowNameCacheImpl) get(event *github.WorkflowJobEvent) string {
-	runId := fmt.Sprint(event.GetWorkflowJob().GetRunID())
+	runId := fmt.Sprintf("%d-%d", event.GetInstallation().GetID(), event.GetWorkflowJob().GetRunID())
 	worfklowName, ok := m.workflowNames[runId]
 
 	if ok {
