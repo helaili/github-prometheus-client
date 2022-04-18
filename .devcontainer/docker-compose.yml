@@ -11,11 +11,7 @@ services:
         # On Linux, you may need to update USER_UID and USER_GID below if not your local UID is not 1000.
         USER_UID: 1000
         USER_GID: 1000
-    #runArgs:
-      #- --cap-add=SYS_PTRACE
-      #- --security-opt
-      #- seccomp=unconfined
-
+    
     volumes:
       - ..:/workspace:cached
 
@@ -26,22 +22,11 @@ services:
     # (Adding the "ports" property to this file will not forward from a Codespace.)
 
   db:
-    image: mongo:latest
+    image: redis:6
     restart: unless-stopped
-    volumes:
-      - mongodb-data:/data/db
-
-    # Runs MongoDB on the same network as the app container, allows "forwardPorts" in devcontainer.json function.
+    # Runs Redis on the same network as the app container, allows "forwardPorts" in devcontainer.json function.
     network_mode: service:app
-
-    # Uncomment to change startup options
-    # environment:
-    #  MONGO_INITDB_ROOT_USERNAME: root
-    #  MONGO_INITDB_ROOT_PASSWORD: example
-    #  MONGO_INITDB_DATABASE: your-database-here
-
-    # Add "forwardPorts": ["27017"] to **devcontainer.json** to forward MongoDB locally.
-    # (Adding the "ports" property to this file will not forward from a Codespace.)
-
-volumes:
-  mongodb-data:
+    environment:
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+    
