@@ -14,7 +14,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-var workflowNames WorkflowNameCache
 var workflowRunMetrics *WorkflowRunMetrics
 var workflowJobMetrics *WorkflowJobMetrics
 var webhook_secret []byte
@@ -38,7 +37,12 @@ func main() {
 	}
 	webhook_secret = []byte(os.Getenv("WEBHOOK_SECRET"))
 
-	workflowNames = NewWorkflowNameCacheImpl(app_id, []byte(private_key))
+	var workflowNames IWorkflowNameCache
+	if env == "development" {
+		workflowNames = NewWorkflowNameLocalCache(app_id, []byte(private_key))
+	} else {
+		workflowNames = NewWorkflowNameRedisCache(app_id, []byte(private_key))
+	}
 	workflowRunMetrics = NewWorkflowRunMetrics(workflowNames)
 	workflowJobMetrics = NewWorkflowJobMetrics(workflowNames)
 

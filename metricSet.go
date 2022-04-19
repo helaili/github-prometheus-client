@@ -10,7 +10,7 @@ import (
 type MetricSet struct {
 	counters   map[string]*prometheus.CounterVec
 	histograms map[string]*prometheus.HistogramVec
-	cache      WorkflowNameCache
+	cache      IWorkflowNameCache
 }
 
 func (ms MetricSet) getCounter(eventType string, action string) (*prometheus.CounterVec, bool) {

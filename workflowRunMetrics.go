@@ -12,7 +12,7 @@ type WorkflowRunMetrics struct {
 	MetricSet
 }
 
-func NewWorkflowRunMetrics(cache WorkflowNameCache) *WorkflowRunMetrics {
+func NewWorkflowRunMetrics(cache IWorkflowNameCache) *WorkflowRunMetrics {
 	m := new(WorkflowRunMetrics)
 	m.counters = make(map[string]*prometheus.CounterVec)
 	m.histograms = make(map[string]*prometheus.HistogramVec)

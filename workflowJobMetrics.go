@@ -12,7 +12,7 @@ type WorkflowJobMetrics struct {
 	MetricSet
 }
 
-func NewWorkflowJobMetrics(cache WorkflowNameCache) *WorkflowJobMetrics {
+func NewWorkflowJobMetrics(cache IWorkflowNameCache) *WorkflowJobMetrics {
 	m := new(WorkflowJobMetrics)
 	m.counters = make(map[string]*prometheus.CounterVec)
 	m.histograms = make(map[string]*prometheus.HistogramVec)

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -10,57 +9,39 @@ import (
 	"github.com/google/go-github/v43/github"
 )
 
-type WorkflowNameCache interface {
+type IWorkflowNameCache interface {
 	set(event *github.WorkflowRunEvent)
 	get(event *github.WorkflowJobEvent) string
 }
 
-type WorkflowNameCacheImpl struct {
-	// TODO: use a distributed cache so that we can expire and make the data available to other instances
-	workflowNames map[string]string
-	transport     *ghinstallation.AppsTransport
+type WorkflowNameCache struct {
+	transport *ghinstallation.AppsTransport
 }
 
-func NewWorkflowNameCacheImpl(app_id int64, private_key []byte) *WorkflowNameCacheImpl {
+func NewWorkflowNameCache(app_id int64, private_key []byte) *WorkflowNameCache {
 	transport, err := ghinstallation.NewAppsTransport(http.DefaultTransport, app_id, private_key)
 	if err != nil {
 		log.Fatal("Failed to initialize GitHub App transport:", err)
 	}
 
-	return &WorkflowNameCacheImpl{
-		map[string]string{},
+	return &WorkflowNameCache{
 		transport,
 	}
 }
 
-func (m WorkflowNameCacheImpl) set(event *github.WorkflowRunEvent) {
-	m.workflowNames[fmt.Sprintf("%d-%d", event.GetInstallation().GetID(), event.GetWorkflowRun().GetID())] = event.GetWorkflow().GetName()
-}
-
-func (m WorkflowNameCacheImpl) get(event *github.WorkflowJobEvent) string {
-	runId := fmt.Sprintf("%d-%d", event.GetInstallation().GetID(), event.GetWorkflowJob().GetRunID())
-	worfklowName, ok := m.workflowNames[runId]
-
-	if ok {
-		return worfklowName
-	} else {
-		// The workflow name has not been cached. Let's fetch it from GitHub.
-		installationID := event.GetInstallation().GetID()
-		if installationID == 0 {
-			log.Printf("Failed to retrieve installation ID")
-			return ""
-		}
-
-		installationTransport := ghinstallation.NewFromAppsTransport(m.transport, installationID)
-		client := github.NewClient(&http.Client{Transport: installationTransport})
-		worflowRun, _, err := client.Actions.GetWorkflowRunByID(context.Background(), event.GetRepo().GetOwner().GetLogin(), event.GetRepo().GetName(), event.GetWorkflowJob().GetRunID())
-		if err != nil {
-			log.Printf("Failed to retrieve workflow run for %s/%s with id %d: %s", event.GetSender().GetLogin(), event.GetRepo().GetName(), event.GetWorkflowJob().GetRunID(), err)
-			return ""
-		}
-
-		m.workflowNames[runId] = worflowRun.GetName()
-
-		return worflowRun.GetName()
+func (m WorkflowNameCache) getWorkflowNameFromGitHub(event *github.WorkflowJobEvent) string {
+	installationID := event.GetInstallation().GetID()
+	if installationID == 0 {
+		log.Printf("Failed to retrieve installation ID")
+		return ""
 	}
+
+	installationTransport := ghinstallation.NewFromAppsTransport(m.transport, installationID)
+	client := github.NewClient(&http.Client{Transport: installationTransport})
+	worflowRun, _, err := client.Actions.GetWorkflowRunByID(context.Background(), event.GetRepo().GetOwner().GetLogin(), event.GetRepo().GetName(), event.GetWorkflowJob().GetRunID())
+	if err != nil {
+		log.Printf("Failed to retrieve workflow run for %s/%s with id %d: %s", event.GetSender().GetLogin(), event.GetRepo().GetName(), event.GetWorkflowJob().GetRunID(), err)
+		return ""
+	}
+	return worflowRun.GetName()
 }
