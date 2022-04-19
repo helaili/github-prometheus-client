@@ -37,4 +37,4 @@ services:
     restart: unless-stopped
     network_mode: service:app
     volumes:
-      - ./prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
