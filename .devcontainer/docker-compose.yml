@@ -11,7 +11,6 @@ services:
         # On Linux, you may need to update USER_UID and USER_GID below if not your local UID is not 1000.
         USER_UID: 1000
         USER_GID: 1000
-        GITHUB_PROMETHEUS_CLIENT_ENV: codespaces
     
     volumes:
       - ..:/workspace:cached
@@ -20,7 +19,8 @@ services:
     command: sleep infinity
     environment:
       PORT: 8080
-
+      GITHUB_PROMETHEUS_CLIENT_ENV: codespaces
+      
       # Use "forwardPorts" in **devcontainer.json** to forward an app port locally. 
     # (Adding the "ports" property to this file will not forward from a Codespace.)
 

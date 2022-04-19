@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/google/go-github/v43/github"
 )
@@ -12,6 +13,7 @@ type WorkflowNameLocalCache struct {
 }
 
 func NewWorkflowNameLocalCache(app_id int64, private_key []byte) *WorkflowNameLocalCache {
+	log.Println("Using the local cache")
 	return &WorkflowNameLocalCache{
 		*NewWorkflowNameCache(app_id, private_key),
 		map[string]string{},

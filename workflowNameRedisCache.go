@@ -14,6 +14,7 @@ type WorkflowNameRedisCache struct {
 }
 
 func NewWorkflowNameRedisCache(app_id int64, private_key []byte) *WorkflowNameRedisCache {
+	log.Println("Using the Redis cache")
 	return &WorkflowNameRedisCache{
 		*NewWorkflowNameCache(app_id, private_key),
 		&redis.Pool{
@@ -58,6 +59,6 @@ func (m WorkflowNameRedisCache) get(event *github.WorkflowJobEvent) string {
 		}
 		return workflowName
 	} else {
-		return worfklowName.(string)
+		return fmt.Sprint(worfklowName)
 	}
 }
