@@ -29,4 +29,10 @@ services:
     environment:
       - REDIS_PORT=6379
       - REDIS_PASSWORD=
-    
+
+  prometheus:
+    image: prom/prometheus
+    restart: unless-stopped
+    network_mode: service:app
+    volumes:
+      - ./prometheus.yml
