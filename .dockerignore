@@ -1,3 +1,6 @@
 .env.*
+.devcontainer
+.github
 github-prometheus-client
 *.pem
+test
