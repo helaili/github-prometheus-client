@@ -59,6 +59,6 @@ func (m WorkflowNameRedisCache) get(event *github.WorkflowJobEvent) string {
 		}
 		return workflowName
 	} else {
-		return fmt.Sprint(worfklowName)
+		return fmt.Sprintf("%s", worfklowName)
 	}
 }
