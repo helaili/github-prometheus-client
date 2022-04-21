@@ -1,7 +1,7 @@
 SHELL := /bin/sh
 UNAME := $(shell uname)
 
-.PHONY: build clean run run-dev test docker-build
+.PHONY: build clean run run-dev test e2e-test docker-build
 
 build: clean
 	go build -o github-prometheus-client
@@ -16,6 +16,9 @@ clean:
 	rm -f github-prometheus-client
 
 test:
+	go test
+
+e2e-test:
 	cd test && ./test.sh && cd ..
 
 docker-build:
