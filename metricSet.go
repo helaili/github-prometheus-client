@@ -11,7 +11,7 @@ type MetricSet struct {
 	registry   *prometheus.Registry
 	counters   map[string]*prometheus.CounterVec
 	histograms map[string]*prometheus.HistogramVec
-	cache      IWorkflowNameCache
+	cache      ICache
 }
 
 func (ms MetricSet) getCounter(eventType string, action string) (*prometheus.CounterVec, bool) {

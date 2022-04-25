@@ -23,11 +23,11 @@ func main() {
 	webhook_secret = secret
 	port := os.Getenv("PORT")
 
-	var cache IWorkflowNameCache
+	var cache ICache
 	if env == "development" {
-		cache = NewWorkflowNameLocalCache(app_id, []byte(private_key))
+		cache = NewLocalCache(app_id, []byte(private_key))
 	} else {
-		cache = NewWorkflowNameRedisCache(app_id, []byte(private_key))
+		cache = NewRedisCache(app_id, []byte(private_key))
 	}
 
 	installationHandlers = make(map[string]*InstallationHandler)
@@ -61,7 +61,7 @@ func initializeEnv() (env string, private_key string, webhook_secret []byte, app
 	return env, private_key, webhook_secret, app_id
 }
 
-func initializeInstallationHandlers(cache IWorkflowNameCache) {
+func initializeInstallationHandlers(cache ICache) {
 	installationHandlers[fmt.Sprintf("%d", 24886277)] = NewInstallationHandler(24886277, cache)
 	installationHandlers[fmt.Sprintf("%d", 24886278)] = NewInstallationHandler(24886278, cache)
 }

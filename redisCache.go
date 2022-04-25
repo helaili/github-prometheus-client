@@ -8,15 +8,15 @@ import (
 	"github.com/google/go-github/v43/github"
 )
 
-type WorkflowNameRedisCache struct {
-	WorkflowNameCache
+type RedisCache struct {
+	AbstractCache
 	pool *redis.Pool
 }
 
-func NewWorkflowNameRedisCache(app_id int64, private_key []byte) *WorkflowNameRedisCache {
+func NewRedisCache(app_id int64, private_key []byte) *RedisCache {
 	log.Println("Using the Redis cache")
-	return &WorkflowNameRedisCache{
-		*NewWorkflowNameCache(app_id, private_key),
+	return &RedisCache{
+		*NewAbstractCache(app_id, private_key),
 		&redis.Pool{
 			MaxIdle:   80,
 			MaxActive: 12000,
@@ -33,7 +33,7 @@ func NewWorkflowNameRedisCache(app_id int64, private_key []byte) *WorkflowNameRe
 	}
 }
 
-func (m WorkflowNameRedisCache) set(event *github.WorkflowRunEvent) {
+func (m RedisCache) set(event *github.WorkflowRunEvent) {
 	client := m.pool.Get()
 	defer client.Close()
 
@@ -44,7 +44,7 @@ func (m WorkflowNameRedisCache) set(event *github.WorkflowRunEvent) {
 	}
 }
 
-func (m WorkflowNameRedisCache) get(event *github.WorkflowJobEvent) string {
+func (m RedisCache) get(event *github.WorkflowJobEvent) string {
 	client := m.pool.Get()
 	defer client.Close()
 

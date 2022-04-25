@@ -7,24 +7,24 @@ import (
 	"github.com/google/go-github/v43/github"
 )
 
-type WorkflowNameLocalCache struct {
-	WorkflowNameCache
+type LocalCache struct {
+	AbstractCache
 	workflowNames map[string]string
 }
 
-func NewWorkflowNameLocalCache(app_id int64, private_key []byte) *WorkflowNameLocalCache {
+func NewLocalCache(app_id int64, private_key []byte) *LocalCache {
 	log.Println("Using the local cache")
-	return &WorkflowNameLocalCache{
-		*NewWorkflowNameCache(app_id, private_key),
+	return &LocalCache{
+		*NewAbstractCache(app_id, private_key),
 		map[string]string{},
 	}
 }
 
-func (m WorkflowNameLocalCache) set(event *github.WorkflowRunEvent) {
+func (m LocalCache) set(event *github.WorkflowRunEvent) {
 	m.workflowNames[fmt.Sprintf("%d-%d", event.GetInstallation().GetID(), event.GetWorkflowRun().GetID())] = event.GetWorkflow().GetName()
 }
 
-func (m WorkflowNameLocalCache) get(event *github.WorkflowJobEvent) string {
+func (m LocalCache) get(event *github.WorkflowJobEvent) string {
 	runId := fmt.Sprintf("%d-%d", event.GetInstallation().GetID(), event.GetWorkflowJob().GetRunID())
 	worfklowName, ok := m.workflowNames[runId]
 

@@ -14,7 +14,7 @@ type InstallationHandler struct {
 	workflowJobMetrics *WorkflowJobMetrics
 }
 
-func NewInstallationHandler(installation_id int64, cache IWorkflowNameCache) *InstallationHandler {
+func NewInstallationHandler(installation_id int64, cache ICache) *InstallationHandler {
 	inst := new(InstallationHandler)
 	registry := prometheus.NewRegistry()
 	inst.workflowRunMetrics = NewWorkflowRunMetrics(registry, cache)

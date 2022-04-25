@@ -9,27 +9,27 @@ import (
 	"github.com/google/go-github/v43/github"
 )
 
-type IWorkflowNameCache interface {
+type ICache interface {
 	set(event *github.WorkflowRunEvent)
 	get(event *github.WorkflowJobEvent) string
 }
 
-type WorkflowNameCache struct {
+type AbstractCache struct {
 	transport *ghinstallation.AppsTransport
 }
 
-func NewWorkflowNameCache(app_id int64, private_key []byte) *WorkflowNameCache {
+func NewAbstractCache(app_id int64, private_key []byte) *AbstractCache {
 	transport, err := ghinstallation.NewAppsTransport(http.DefaultTransport, app_id, private_key)
 	if err != nil {
 		log.Fatal("Failed to initialize GitHub App transport:", err)
 	}
 
-	return &WorkflowNameCache{
+	return &AbstractCache{
 		transport,
 	}
 }
 
-func (m WorkflowNameCache) getWorkflowNameFromGitHub(event *github.WorkflowJobEvent) string {
+func (m AbstractCache) getWorkflowNameFromGitHub(event *github.WorkflowJobEvent) string {
 	installationID := event.GetInstallation().GetID()
 	if installationID == 0 {
 		log.Printf("Failed to retrieve installation ID")
