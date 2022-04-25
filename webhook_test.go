@@ -27,10 +27,12 @@ func TestWorkflow(t *testing.T) {
 		{name: "18 deployment status created", path: "/", event: "deployment_status", payloadFile: "test/workflow/18_deployment_status_540578780_created.json", expCode: http.StatusOK, expContent: ""},
 		{name: "19 check suite completed", path: "/", event: "check_suite", payloadFile: "test/workflow/19_check_suite_5939269259_completed.json", expCode: http.StatusOK, expContent: ""},
 		{name: "20 workflow run completed", path: "/", event: "workflow_run", payloadFile: "test/workflow/20_workflow_run_2096567160_completed.json", expCode: http.StatusOK, expContent: ""},
+		{name: "01  installation created", path: "/", event: "installation", payloadFile: "test/installation/01_installation_25140335_created.json", expCode: http.StatusOK, expContent: ""},
 	}
 
-	env, private_key, _, app_id := initializeEnv()
-	initializeWorkflowMetrics(env, private_key, app_id)
+	_, private_key, _, app_id := initializeEnv()
+	installationHandlers = make(map[string]*InstallationHandler)
+	initializeInstallationHandlers(NewWorkflowNameLocalCache(app_id, []byte(private_key)))
 
 	url, cleanup := setupTestAPI(t)
 	defer cleanup()

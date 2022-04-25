@@ -8,6 +8,7 @@ import (
 )
 
 type MetricSet struct {
+	registry   *prometheus.Registry
 	counters   map[string]*prometheus.CounterVec
 	histograms map[string]*prometheus.HistogramVec
 	cache      IWorkflowNameCache

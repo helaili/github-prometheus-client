@@ -1,19 +1,35 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net/http"
 
-	"github.com/google/go-github/v43/github"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type InstallationHandler struct {
+	workflowRunMetrics *WorkflowRunMetrics
+	workflowJobMetrics *WorkflowJobMetrics
 }
 
-func NewInstallationHandler() *InstallationHandler {
-	m := new(InstallationHandler)
-	return m
-}
+func NewInstallationHandler(installation_id int64, cache IWorkflowNameCache) *InstallationHandler {
+	inst := new(InstallationHandler)
+	registry := prometheus.NewRegistry()
+	inst.workflowRunMetrics = NewWorkflowRunMetrics(registry, cache)
+	inst.workflowJobMetrics = NewWorkflowJobMetrics(registry, cache)
 
-func (m InstallationHandler) created(eventType string, event *github.InstallationEvent) {
-	log.Printf("reporting %s event with action %s for  %s for installation %d\n", eventType, event.GetAction(), event.GetInstallation().GetAccount().GetLogin(), event.GetInstallation().GetID())
+	handlerPath := fmt.Sprintf("/metrics-%d", installation_id)
+
+	log.Printf("Receiving events for installation %d on path %s\n", installation_id, handlerPath)
+	// This is the Prometheus endpoint.
+	http.Handle(handlerPath, promhttp.HandlerFor(
+		registry,
+		promhttp.HandlerOpts{
+			EnableOpenMetrics: true,
+		},
+	))
+
+	return inst
 }

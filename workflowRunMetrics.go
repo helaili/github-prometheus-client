@@ -6,18 +6,18 @@ import (
 
 	"github.com/google/go-github/v43/github"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 type WorkflowRunMetrics struct {
 	MetricSet
 }
 
-func NewWorkflowRunMetrics(cache IWorkflowNameCache) *WorkflowRunMetrics {
+func NewWorkflowRunMetrics(registry *prometheus.Registry, cache IWorkflowNameCache) *WorkflowRunMetrics {
 	m := new(WorkflowRunMetrics)
 	m.counters = make(map[string]*prometheus.CounterVec)
 	m.histograms = make(map[string]*prometheus.HistogramVec)
 	m.cache = cache
+	m.registry = registry
 
 	m.intializeCounters()
 	m.intializeHistograms()
@@ -58,7 +58,7 @@ func (m WorkflowRunMetrics) report(eventType string, event *github.WorkflowRunEv
 }
 
 func (m WorkflowRunMetrics) intializeHistograms() {
-	m.histograms["github_actions_workflow_run_duration"] = promauto.NewHistogramVec(prometheus.HistogramOpts{
+	m.histograms["github_actions_workflow_run_duration"] = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_run",
 		Name:      "duration",
@@ -67,10 +67,14 @@ func (m WorkflowRunMetrics) intializeHistograms() {
 	},
 		[]string{"org", "repo", "workflow", "installation"},
 	)
+
+	for histogramName := range m.histograms {
+		m.registry.MustRegister(m.histograms[histogramName])
+	}
 }
 
 func (m WorkflowRunMetrics) intializeCounters() {
-	m.counters["github_actions_workflow_run_requested"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_run_requested"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_run",
 		Name:      "requested",
@@ -79,7 +83,7 @@ func (m WorkflowRunMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "installation"},
 	)
 
-	m.counters["github_actions_workflow_run_completed"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_run_completed"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_run",
 		Name:      "completed",
@@ -88,7 +92,7 @@ func (m WorkflowRunMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "installation"},
 	)
 
-	m.counters["github_actions_workflow_run_success"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_run_success"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_run",
 		Name:      "success",
@@ -97,7 +101,7 @@ func (m WorkflowRunMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "installation"},
 	)
 
-	m.counters["github_actions_workflow_run_cancelled"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_run_cancelled"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_run",
 		Name:      "cancelled",
@@ -106,7 +110,7 @@ func (m WorkflowRunMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "installation"},
 	)
 
-	m.counters["github_actions_workflow_run_action_required"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_run_action_required"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_run",
 		Name:      "action_required",
@@ -115,7 +119,7 @@ func (m WorkflowRunMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "installation"},
 	)
 
-	m.counters["github_actions_workflow_run_timed_out"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_run_timed_out"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_run",
 		Name:      "timed_out",
@@ -124,7 +128,7 @@ func (m WorkflowRunMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "installation"},
 	)
 
-	m.counters["github_actions_workflow_run_failure"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_run_failure"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_run",
 		Name:      "failure",
@@ -133,7 +137,7 @@ func (m WorkflowRunMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "installation"},
 	)
 
-	m.counters["github_actions_workflow_run_neutral"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_run_neutral"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_run",
 		Name:      "neutral",
@@ -142,7 +146,7 @@ func (m WorkflowRunMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "installation"},
 	)
 
-	m.counters["github_actions_workflow_run_skipped"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_run_skipped"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_run",
 		Name:      "skipped",
@@ -151,7 +155,7 @@ func (m WorkflowRunMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "installation"},
 	)
 
-	m.counters["github_actions_workflow_run_startup_failure"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_run_startup_failure"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_run",
 		Name:      "startup_failure",
@@ -160,7 +164,7 @@ func (m WorkflowRunMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "installation"},
 	)
 
-	m.counters["github_actions_workflow_run_stale"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_run_stale"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_run",
 		Name:      "stale",
@@ -168,4 +172,8 @@ func (m WorkflowRunMetrics) intializeCounters() {
 	},
 		[]string{"org", "repo", "workflow", "installation"},
 	)
+
+	for counterName := range m.counters {
+		m.registry.MustRegister(m.counters[counterName])
+	}
 }

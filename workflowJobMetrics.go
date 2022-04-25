@@ -6,18 +6,18 @@ import (
 
 	"github.com/google/go-github/v43/github"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
 )
 
 type WorkflowJobMetrics struct {
 	MetricSet
 }
 
-func NewWorkflowJobMetrics(cache IWorkflowNameCache) *WorkflowJobMetrics {
+func NewWorkflowJobMetrics(registry *prometheus.Registry, cache IWorkflowNameCache) *WorkflowJobMetrics {
 	m := new(WorkflowJobMetrics)
 	m.counters = make(map[string]*prometheus.CounterVec)
 	m.histograms = make(map[string]*prometheus.HistogramVec)
 	m.cache = cache
+	m.registry = registry
 
 	m.intializeCounters()
 	m.intializeHistograms()
@@ -63,7 +63,7 @@ func (m WorkflowJobMetrics) report(eventType string, event *github.WorkflowJobEv
 }
 
 func (m WorkflowJobMetrics) intializeHistograms() {
-	m.histograms["github_actions_workflow_job_duration"] = promauto.NewHistogramVec(prometheus.HistogramOpts{
+	m.histograms["github_actions_workflow_job_duration"] = prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_job",
 		Name:      "duration",
@@ -72,10 +72,14 @@ func (m WorkflowJobMetrics) intializeHistograms() {
 	},
 		[]string{"org", "repo", "workflow", "job", "installation"},
 	)
+
+	for histogramName := range m.histograms {
+		m.registry.MustRegister(m.histograms[histogramName])
+	}
 }
 
 func (m WorkflowJobMetrics) intializeCounters() {
-	m.counters["github_actions_workflow_job_queued"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_job_queued"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_job",
 		Name:      "queued",
@@ -84,7 +88,7 @@ func (m WorkflowJobMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "job", "installation"},
 	)
 
-	m.counters["github_actions_workflow_job_in_progress"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_job_in_progress"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_job",
 		Name:      "in_progress",
@@ -93,7 +97,7 @@ func (m WorkflowJobMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "job", "installation"},
 	)
 
-	m.counters["github_actions_workflow_job_completed"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_job_completed"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_job",
 		Name:      "completed",
@@ -102,7 +106,7 @@ func (m WorkflowJobMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "job", "installation"},
 	)
 
-	m.counters["github_actions_workflow_job_success"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_job_success"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_job",
 		Name:      "success",
@@ -111,7 +115,7 @@ func (m WorkflowJobMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "job", "installation"},
 	)
 
-	m.counters["github_actions_workflow_job_cancelled"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_job_cancelled"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_job",
 		Name:      "cancelled",
@@ -120,7 +124,7 @@ func (m WorkflowJobMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "job", "installation"},
 	)
 
-	m.counters["github_actions_workflow_job_action_required"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_job_action_required"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_job",
 		Name:      "action_required",
@@ -129,7 +133,7 @@ func (m WorkflowJobMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "job", "installation"},
 	)
 
-	m.counters["github_actions_workflow_job_timed_out"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_job_timed_out"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_job",
 		Name:      "timed_out",
@@ -138,7 +142,7 @@ func (m WorkflowJobMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "job", "installation"},
 	)
 
-	m.counters["github_actions_workflow_job_failure"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_job_failure"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_job",
 		Name:      "failure",
@@ -147,7 +151,7 @@ func (m WorkflowJobMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "job", "installation"},
 	)
 
-	m.counters["github_actions_workflow_job_neutral"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_job_neutral"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_job",
 		Name:      "neutral",
@@ -156,7 +160,7 @@ func (m WorkflowJobMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "job", "installation"},
 	)
 
-	m.counters["github_actions_workflow_job_skipped"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_job_skipped"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_job",
 		Name:      "skipped",
@@ -165,7 +169,7 @@ func (m WorkflowJobMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "job", "installation"},
 	)
 
-	m.counters["github_actions_workflow_job_startup_failure"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_job_startup_failure"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_job",
 		Name:      "startup_failure",
@@ -174,7 +178,7 @@ func (m WorkflowJobMetrics) intializeCounters() {
 		[]string{"org", "repo", "workflow", "job", "installation"},
 	)
 
-	m.counters["github_actions_workflow_job_stale"] = promauto.NewCounterVec(prometheus.CounterOpts{
+	m.counters["github_actions_workflow_job_stale"] = prometheus.NewCounterVec(prometheus.CounterOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_job",
 		Name:      "stale",
@@ -182,4 +186,8 @@ func (m WorkflowJobMetrics) intializeCounters() {
 	},
 		[]string{"org", "repo", "workflow", "job", "installation"},
 	)
+
+	for counterName := range m.counters {
+		m.registry.MustRegister(m.counters[counterName])
+	}
 }

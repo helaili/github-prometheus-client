@@ -10,40 +10,34 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/google/go-github/v43/github"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-var workflowRunMetrics *WorkflowRunMetrics
-var workflowJobMetrics *WorkflowJobMetrics
-var installationHandler *InstallationHandler
+// Each installation has a distinct handler so we can isolate
+// collectors in separate Prometheus registries and listen on
+// a dedicated URL per Prometheus scraper.
+var installationHandlers map[string]*InstallationHandler
 var webhook_secret []byte
 
 func main() {
-	initialize()
-
+	env, private_key, secret, app_id := initializeEnv()
+	webhook_secret = secret
 	port := os.Getenv("PORT")
 
-	// This is the Prometheus endpoint.
-	http.Handle("/metrics", promhttp.HandlerFor(
-		prometheus.DefaultGatherer,
-		promhttp.HandlerOpts{
-			EnableOpenMetrics: true,
-		},
-	))
+	var cache IWorkflowNameCache
+	if env == "development" {
+		cache = NewWorkflowNameLocalCache(app_id, []byte(private_key))
+	} else {
+		cache = NewWorkflowNameRedisCache(app_id, []byte(private_key))
+	}
+
+	installationHandlers = make(map[string]*InstallationHandler)
+	initializeInstallationHandlers(cache)
 
 	// This is the GitHub Webhook endpoint.
 	http.HandleFunc("/webhook", webhook)
 
 	log.Printf("Listening on port %s\n", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
-}
-
-func initialize() {
-	env, private_key, secret, app_id := initializeEnv()
-	webhook_secret = secret
-	initializeWorkflowMetrics(env, private_key, app_id)
-	initializeInstallationHandler()
 }
 
 func initializeEnv() (env string, private_key string, webhook_secret []byte, app_id int64) {
@@ -67,19 +61,17 @@ func initializeEnv() (env string, private_key string, webhook_secret []byte, app
 	return env, private_key, webhook_secret, app_id
 }
 
-func initializeWorkflowMetrics(env, private_key string, app_id int64) {
-	var workflowNames IWorkflowNameCache
-	if env == "development" {
-		workflowNames = NewWorkflowNameLocalCache(app_id, []byte(private_key))
-	} else {
-		workflowNames = NewWorkflowNameRedisCache(app_id, []byte(private_key))
-	}
-	workflowRunMetrics = NewWorkflowRunMetrics(workflowNames)
-	workflowJobMetrics = NewWorkflowJobMetrics(workflowNames)
+func initializeInstallationHandlers(cache IWorkflowNameCache) {
+	installationHandlers[fmt.Sprintf("%d", 24886277)] = NewInstallationHandler(24886277, cache)
+	installationHandlers[fmt.Sprintf("%d", 24886278)] = NewInstallationHandler(24886278, cache)
 }
 
-func initializeInstallationHandler() {
-	installationHandler = NewInstallationHandler()
+func getInstallationHandler(installation_id int64) *InstallationHandler {
+	handler := installationHandlers[fmt.Sprintf("%d", installation_id)]
+	if handler == nil {
+		log.Printf("No handler for installation %d\n", installation_id)
+	}
+	return handler
 }
 
 /*
@@ -107,11 +99,11 @@ func webhook(w http.ResponseWriter, req *http.Request) {
 
 	switch e := event.(type) {
 	case *github.WorkflowRunEvent:
-		workflowRunMetrics.report(github.WebHookType(req), e)
+		getInstallationHandler(e.GetInstallation().GetID()).workflowRunMetrics.report(github.WebHookType(req), e)
 	case *github.WorkflowJobEvent:
-		workflowJobMetrics.report(github.WebHookType(req), e)
+		getInstallationHandler(e.GetInstallation().GetID()).workflowJobMetrics.report(github.WebHookType(req), e)
 	case *github.InstallationEvent:
-		installationHandler.created(github.WebHookType(req), e)
+		//installationHandler.created(github.WebHookType(req), e)
 	default:
 		// log.Printf("unknown event type %s\n", github.WebHookType(req))
 		return

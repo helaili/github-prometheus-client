@@ -18,3 +18,4 @@ curl -H "Content-Type: application/json" -H "X-GitHub-Event: check_run" -d "@wor
 curl -H "Content-Type: application/json" -H "X-GitHub-Event: deployment_status" -d "@workflow/18_deployment_status_540578780_created.json" http://localhost:8080/webhook
 curl -H "Content-Type: application/json" -H "X-GitHub-Event: check_suite" -d "@workflow/19_check_suite_5939269259_completed.json" http://localhost:8080/webhook
 curl -H "Content-Type: application/json" -H "X-GitHub-Event: workflow_run" -d "@workflow/20_workflow_run_2096567160_completed.json" http://localhost:8080/webhook
+curl -H "Content-Type: application/json" -H "X-GitHub-Event: workflow_run" -d "@workflow/101_workflow_run_2096567160_requested.json" http://localhost:8080/webhook
