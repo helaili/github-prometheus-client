@@ -16,12 +16,14 @@ import (
 
 var workflowRunMetrics *WorkflowRunMetrics
 var workflowJobMetrics *WorkflowJobMetrics
+var installationHandler *InstallationHandler
 var webhook_secret []byte
 
 func main() {
 	initialize()
 
 	port := os.Getenv("PORT")
+
 	// This is the Prometheus endpoint.
 	http.Handle("/metrics", promhttp.HandlerFor(
 		prometheus.DefaultGatherer,
@@ -38,7 +40,14 @@ func main() {
 }
 
 func initialize() {
-	env := os.Getenv("GITHUB_PROMETHEUS_CLIENT_ENV")
+	env, private_key, secret, app_id := initializeEnv()
+	webhook_secret = secret
+	initializeWorkflowMetrics(env, private_key, app_id)
+	initializeInstallationHandler()
+}
+
+func initializeEnv() (env string, private_key string, webhook_secret []byte, app_id int64) {
+	env = os.Getenv("GITHUB_PROMETHEUS_CLIENT_ENV")
 	if env == "" {
 		env = "development"
 	}
@@ -48,13 +57,17 @@ func initialize() {
 	godotenv.Load(".env." + env)
 	godotenv.Load()
 
-	private_key := os.Getenv("PRIVATE_KEY")
+	private_key = os.Getenv("PRIVATE_KEY")
 	app_id, err := strconv.ParseInt(os.Getenv("APP_ID"), 10, 36)
 	if err != nil {
 		log.Fatal("Wrong format for APP_ID")
 	}
 	webhook_secret = []byte(os.Getenv("WEBHOOK_SECRET"))
 
+	return env, private_key, webhook_secret, app_id
+}
+
+func initializeWorkflowMetrics(env, private_key string, app_id int64) {
 	var workflowNames IWorkflowNameCache
 	if env == "development" {
 		workflowNames = NewWorkflowNameLocalCache(app_id, []byte(private_key))
@@ -63,6 +76,10 @@ func initialize() {
 	}
 	workflowRunMetrics = NewWorkflowRunMetrics(workflowNames)
 	workflowJobMetrics = NewWorkflowJobMetrics(workflowNames)
+}
+
+func initializeInstallationHandler() {
+	installationHandler = NewInstallationHandler()
 }
 
 /*
@@ -93,6 +110,8 @@ func webhook(w http.ResponseWriter, req *http.Request) {
 		workflowRunMetrics.report(github.WebHookType(req), e)
 	case *github.WorkflowJobEvent:
 		workflowJobMetrics.report(github.WebHookType(req), e)
+	case *github.InstallationEvent:
+		installationHandler.created(github.WebHookType(req), e)
 	default:
 		// log.Printf("unknown event type %s\n", github.WebHookType(req))
 		return

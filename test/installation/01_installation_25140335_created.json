@@ -1,0 +1,116 @@
+{
+  "action": "created",
+  "installation": {
+    "id": 25140335,
+    "account": {
+      "login": "carbonhub",
+      "id": 63198366,
+      "node_id": "MDEyOk9yZ2FuaXphdGlvbjYzMTk4MzY2",
+      "avatar_url": "https://avatars.githubusercontent.com/u/63198366?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/carbonhub",
+      "html_url": "https://github.com/carbonhub",
+      "followers_url": "https://api.github.com/users/carbonhub/followers",
+      "following_url": "https://api.github.com/users/carbonhub/following{/other_user}",
+      "gists_url": "https://api.github.com/users/carbonhub/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/carbonhub/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/carbonhub/subscriptions",
+      "organizations_url": "https://api.github.com/users/carbonhub/orgs",
+      "repos_url": "https://api.github.com/users/carbonhub/repos",
+      "events_url": "https://api.github.com/users/carbonhub/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/carbonhub/received_events",
+      "type": "Organization",
+      "site_admin": false
+    },
+    "repository_selection": "all",
+    "access_tokens_url": "https://api.github.com/app/installations/25140335/access_tokens",
+    "repositories_url": "https://api.github.com/installation/repositories",
+    "html_url": "https://github.com/organizations/carbonhub/settings/installations/25140335",
+    "app_id": 189572,
+    "app_slug": "github-rover-staging",
+    "target_id": 63198366,
+    "target_type": "Organization",
+    "permissions": {
+      "actions": "read",
+      "metadata": "read"
+    },
+    "events": [
+      "workflow_job",
+      "workflow_run"
+    ],
+    "created_at": "2022-04-22T13:03:36.000+02:00",
+    "updated_at": "2022-04-22T13:03:37.000+02:00",
+    "single_file_name": null,
+    "has_multiple_single_files": false,
+    "single_file_paths": [
+
+    ],
+    "suspended_by": null,
+    "suspended_at": null
+  },
+  "repositories": [
+    {
+      "id": 253263577,
+      "node_id": "MDEwOlJlcG9zaXRvcnkyNTMyNjM1Nzc=",
+      "name": "website",
+      "full_name": "carbonhub/website",
+      "private": true
+    },
+    {
+      "id": 253310563,
+      "node_id": "MDEwOlJlcG9zaXRvcnkyNTMzMTA1NjM=",
+      "name": "carbonhub.github.io",
+      "full_name": "carbonhub/carbonhub.github.io",
+      "private": true
+    },
+    {
+      "id": 338099448,
+      "node_id": "MDEwOlJlcG9zaXRvcnkzMzgwOTk0NDg=",
+      "name": "test",
+      "full_name": "carbonhub/test",
+      "private": false
+    },
+    {
+      "id": 358969039,
+      "node_id": "MDEwOlJlcG9zaXRvcnkzNTg5NjkwMzk=",
+      "name": "tempo",
+      "full_name": "carbonhub/tempo",
+      "private": true
+    },
+    {
+      "id": 406724014,
+      "node_id": "MDEwOlJlcG9zaXRvcnk0MDY3MjQwMTQ=",
+      "name": "gh-budy",
+      "full_name": "carbonhub/gh-budy",
+      "private": true
+    },
+    {
+      "id": 413421728,
+      "node_id": "R_kgDOGKRQoA",
+      "name": "octobud",
+      "full_name": "carbonhub/octobud",
+      "private": true
+    }
+  ],
+  "requester": null,
+  "sender": {
+    "login": "helaili",
+    "id": 2787414,
+    "node_id": "MDQ6VXNlcjI3ODc0MTQ=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/2787414?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/helaili",
+    "html_url": "https://github.com/helaili",
+    "followers_url": "https://api.github.com/users/helaili/followers",
+    "following_url": "https://api.github.com/users/helaili/following{/other_user}",
+    "gists_url": "https://api.github.com/users/helaili/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/helaili/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/helaili/subscriptions",
+    "organizations_url": "https://api.github.com/users/helaili/orgs",
+    "repos_url": "https://api.github.com/users/helaili/repos",
+    "events_url": "https://api.github.com/users/helaili/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/helaili/received_events",
+    "type": "User",
+    "site_admin": true
+  }
+}
