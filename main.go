@@ -19,13 +19,13 @@ import (
 // a dedicated URL per Prometheus scraper.
 var installationHandlers map[string]*InstallationHandler
 var webhook_secret []byte
+var cache ICache
 
 func main() {
 	env, private_key, secret, app_id := initializeEnv()
 	webhook_secret = secret
 	port := os.Getenv("PORT")
 
-	var cache ICache
 	if env == "development" {
 		cache = NewLocalCache(app_id, []byte(private_key))
 	} else {
@@ -33,7 +33,7 @@ func main() {
 	}
 
 	installationHandlers = make(map[string]*InstallationHandler)
-	initializeInstallationHandlers(app_id, []byte(private_key), cache)
+	initializeInstallationHandlers(app_id, []byte(private_key))
 
 	// This is the GitHub Webhook endpoint.
 	http.HandleFunc("/webhook", webhook)
@@ -66,7 +66,7 @@ func initializeEnv() (env string, private_key string, webhook_secret []byte, app
 /*
  * Create a hanlder for each existing installation.
  */
-func initializeInstallationHandlers(app_id int64, private_key []byte, cache ICache) {
+func initializeInstallationHandlers(app_id int64, private_key []byte) {
 	transport, err := ghinstallation.NewAppsTransport(http.DefaultTransport, app_id, private_key)
 	if err != nil {
 		log.Fatal("Failed to initialize GitHub App transport:", err)
@@ -135,7 +135,7 @@ func webhook(w http.ResponseWriter, req *http.Request) {
 			handler.workflowJobMetrics.report(github.WebHookType(req), e)
 		}
 	case *github.InstallationEvent:
-		//installationHandler.created(github.WebHookType(req), e)
+		installationHandlers[fmt.Sprintf("%d", e.GetInstallation().GetID())] = NewInstallationHandler(e.GetInstallation().GetID(), cache)
 	default:
 		// log.Printf("unknown event type %s\n", github.WebHookType(req))
 		return
