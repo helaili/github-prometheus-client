@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 
+	"github.com/bradleyfalzon/ghinstallation"
 	"github.com/joho/godotenv"
 
 	"github.com/google/go-github/v43/github"
@@ -31,7 +33,7 @@ func main() {
 	}
 
 	installationHandlers = make(map[string]*InstallationHandler)
-	initializeInstallationHandlers(cache)
+	initializeInstallationHandlers(app_id, []byte(private_key), cache)
 
 	// This is the GitHub Webhook endpoint.
 	http.HandleFunc("/webhook", webhook)
@@ -61,9 +63,33 @@ func initializeEnv() (env string, private_key string, webhook_secret []byte, app
 	return env, private_key, webhook_secret, app_id
 }
 
-func initializeInstallationHandlers(cache ICache) {
-	installationHandlers[fmt.Sprintf("%d", 24886277)] = NewInstallationHandler(24886277, cache)
-	installationHandlers[fmt.Sprintf("%d", 24886278)] = NewInstallationHandler(24886278, cache)
+/*
+ * Create a hanlder for each existing installation.
+ */
+func initializeInstallationHandlers(app_id int64, private_key []byte, cache ICache) {
+	transport, err := ghinstallation.NewAppsTransport(http.DefaultTransport, app_id, private_key)
+	if err != nil {
+		log.Fatal("Failed to initialize GitHub App transport:", err)
+	}
+
+	client := github.NewClient(&http.Client{Transport: transport})
+
+	listOptions := github.ListOptions{PerPage: 100}
+	listOptions.Page = 1
+
+	for listOptions.Page != 0 {
+		installations, res, err := client.Apps.ListInstallations(context.Background(), &listOptions)
+		if err != nil {
+			log.Fatal("Failed to retrieve App installations:", err)
+		}
+
+		for _, installation := range installations {
+			log.Printf("Initializing installation %d\n", installation.GetID())
+			installationHandlers[fmt.Sprintf("%d", installation.GetID())] = NewInstallationHandler(installation.GetID(), cache)
+		}
+
+		listOptions.Page = res.NextPage
+	}
 }
 
 func getInstallationHandler(installation_id int64) *InstallationHandler {
@@ -99,9 +125,15 @@ func webhook(w http.ResponseWriter, req *http.Request) {
 
 	switch e := event.(type) {
 	case *github.WorkflowRunEvent:
-		getInstallationHandler(e.GetInstallation().GetID()).workflowRunMetrics.report(github.WebHookType(req), e)
+		handler := getInstallationHandler(e.GetInstallation().GetID())
+		if handler != nil {
+			handler.workflowRunMetrics.report(github.WebHookType(req), e)
+		}
 	case *github.WorkflowJobEvent:
-		getInstallationHandler(e.GetInstallation().GetID()).workflowJobMetrics.report(github.WebHookType(req), e)
+		handler := getInstallationHandler(e.GetInstallation().GetID())
+		if handler != nil {
+			handler.workflowJobMetrics.report(github.WebHookType(req), e)
+		}
 	case *github.InstallationEvent:
 		//installationHandler.created(github.WebHookType(req), e)
 	default:

@@ -73,6 +73,7 @@ func (m WorkflowJobMetrics) intializeHistograms() {
 		[]string{"org", "repo", "workflow", "job", "installation"},
 	)
 
+	// TODO: retrieve the object directly from the range command as opposed to the name
 	for histogramName := range m.histograms {
 		m.registry.MustRegister(m.histograms[histogramName])
 	}
