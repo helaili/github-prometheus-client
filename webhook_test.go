@@ -32,7 +32,10 @@ func TestWorkflow(t *testing.T) {
 
 	_, private_key, _, app_id := initializeEnv()
 	installationHandlers = make(map[string]*InstallationHandler)
-	initializeInstallationHandlers(NewWorkflowNameLocalCache(app_id, []byte(private_key)))
+	if cache == nil {
+		cache = NewLocalCache(app_id, []byte(private_key))
+	}
+	initializeInstallationHandlers(app_id, []byte(private_key))
 
 	url, cleanup := setupTestAPI(t)
 	defer cleanup()
