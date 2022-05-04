@@ -4,3 +4,4 @@
 github-prometheus-client
 *.pem
 test
+*.bicep
