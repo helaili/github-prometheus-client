@@ -57,7 +57,17 @@ func initializeEnv() (env string, private_key string, webhook_secret []byte, app
 	private_key = os.Getenv("PRIVATE_KEY")
 	log.Printf("Private key is %s \n", private_key)
 	private_key_array := strings.Split(private_key, "\n")
-	private_key = strings.Join(private_key_array, "\n")
+
+	var newPrivateKey string
+	for i, line := range private_key_array {
+		if i == 0 {
+			newPrivateKey = line
+		} else {
+			newPrivateKey = fmt.Sprintf("%s\n%s", newPrivateKey, line)
+		}
+	}
+
+	private_key = newPrivateKey
 	log.Printf("Private key is now %s \n", private_key)
 
 	app_id, err := strconv.ParseInt(os.Getenv("APP_ID"), 10, 36)
@@ -67,10 +77,6 @@ func initializeEnv() (env string, private_key string, webhook_secret []byte, app
 	webhook_secret = []byte(os.Getenv("WEBHOOK_SECRET"))
 
 	return env, private_key, webhook_secret, app_id
-}
-
-func split(private_key string, r rune) {
-	panic("unimplemented")
 }
 
 /*
