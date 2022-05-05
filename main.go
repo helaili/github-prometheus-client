@@ -54,6 +54,8 @@ func initializeEnv() (env string, private_key string, webhook_secret []byte, app
 	godotenv.Load()
 
 	private_key = os.Getenv("PRIVATE_KEY")
+	log.Printf("Private key is %s \n", private_key)
+
 	app_id, err := strconv.ParseInt(os.Getenv("APP_ID"), 10, 36)
 	if err != nil {
 		log.Fatal("Wrong format for APP_ID")
