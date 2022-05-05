@@ -60,6 +60,7 @@ func initializeEnv() (env string, private_key string, webhook_secret []byte, app
 
 	var newPrivateKey string
 	for i, line := range private_key_array {
+		log.Printf("Processing line %d \n", i)
 		if i == 0 {
 			newPrivateKey = line
 		} else {
