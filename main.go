@@ -56,7 +56,7 @@ func initializeEnv() (env string, private_key string, webhook_secret []byte, app
 
 	private_key = os.Getenv("PRIVATE_KEY")
 	log.Printf("Private key is %s \n", private_key)
-	private_key_array := strings.Split(private_key, "\n")
+	private_key_array := strings.Split(private_key, "^")
 
 	var newPrivateKey string
 	for i, line := range private_key_array {
