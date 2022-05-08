@@ -55,20 +55,8 @@ func initializeEnv() (env string, private_key string, webhook_secret []byte, app
 	godotenv.Load()
 
 	private_key = os.Getenv("PRIVATE_KEY")
-	log.Printf("Private key is %s \n", private_key)
-	private_key_array := strings.Split(private_key, "^")
+	private_key = strings.Replace(private_key, "^", "\n", -1)
 
-	var newPrivateKey string
-	for i, line := range private_key_array {
-		log.Printf("Processing line %d \n", i)
-		if i == 0 {
-			newPrivateKey = line
-		} else {
-			newPrivateKey = fmt.Sprintf("%s\n%s", newPrivateKey, line)
-		}
-	}
-
-	private_key = newPrivateKey
 	log.Printf("Private key is now %s \n", private_key)
 
 	app_id, err := strconv.ParseInt(os.Getenv("APP_ID"), 10, 36)
