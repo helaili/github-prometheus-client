@@ -13,15 +13,15 @@ type RedisCache struct {
 	pool *redis.Pool
 }
 
-func NewRedisCache(app_id int64, private_key []byte) *RedisCache {
-	log.Println("Using the Redis cache")
+func NewRedisCache(redisAddress string, app_id int64, private_key []byte) *RedisCache {
+	log.Printf("Using the Redis cache at %s\n", redisAddress)
 	return &RedisCache{
 		*NewAbstractCache(app_id, private_key),
 		&redis.Pool{
 			MaxIdle:   80,
 			MaxActive: 12000,
 			Dial: func() (redis.Conn, error) {
-				c, err := redis.Dial("tcp", ":6379")
+				c, err := redis.Dial("tcp", redisAddress)
 				if err != nil {
 					panic(err.Error())
 				} else {

@@ -1,7 +1,8 @@
 param location string = resourceGroup().location
+param name string 
 
 resource redis 'Microsoft.Cache/redis@2021-06-01' = {
-  name: 'ghrover-staging-redis'
+  name: name
   location: location
   properties: {
     sku: {

@@ -30,7 +30,12 @@ func main() {
 	if env == "development" {
 		cache = NewLocalCache(app_id, []byte(private_key))
 	} else {
-		cache = NewRedisCache(app_id, []byte(private_key))
+		redisServer := os.Getenv("REDIS_SERVER")
+		redisPort := os.Getenv("REDIS_PORT")
+		if redisPort == "" {
+			redisPort = "6379"
+		}
+		cache = NewRedisCache(fmt.Sprintf("%s:%s", redisServer, redisPort), app_id, []byte(private_key))
 	}
 
 	installationHandlers = make(map[string]*InstallationHandler)

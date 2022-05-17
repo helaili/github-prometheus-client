@@ -4,14 +4,15 @@ param registry_username string
 @secure()
 param registry_password string
 
-param port string = '8080'
+param port int = 8080
 param app_id string
 @secure()
 param webhook_secret string
 @secure()
 param private_key string
 param env string
-
+param redisServer string
+param redisPort int = 6379
 
 resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
   name: 'github-prometheus-client'
@@ -33,7 +34,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
           image: 'ghcr.io/helaili/github-prometheus-client:main'
           ports: [
             {
-              port: 8080
+              port: port
               protocol: 'TCP'
             }
           ]
@@ -58,11 +59,19 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
             }
             {
               name: 'PORT'
-              value: port
+              value: string(port)
             }
             {
               name: 'GITHUB_PROMETHEUS_CLIENT_ENV'
               value: env
+            }
+            {
+              name: 'REDIS_SERVER'
+              value: redisServer
+            }
+            {
+              name: 'REDIS_PORT'
+              value: string(redisPort)
             }
           ]
         }
@@ -80,7 +89,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
       dnsNameLabel: 'ghrover'
       ports: [
         {
-          port: 8080
+          port: port
           protocol: 'TCP'
         }
       ]
