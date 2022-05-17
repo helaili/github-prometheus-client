@@ -1,59 +1,48 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"time"
 
-	"github.com/gomodule/redigo/redis"
+	"github.com/go-redis/redis/v8"
 	"github.com/google/go-github/v43/github"
 )
 
 type RedisCache struct {
 	AbstractCache
-	pool *redis.Pool
+	client *redis.Client
 }
 
-func NewRedisCache(redisAddress string, app_id int64, private_key []byte) *RedisCache {
+func NewRedisCache(redisAddress string, readisPassword string, app_id int64, private_key []byte) *RedisCache {
 	log.Printf("Using the Redis cache at %s\n", redisAddress)
 	return &RedisCache{
 		*NewAbstractCache(app_id, private_key),
-		&redis.Pool{
-			MaxIdle:   80,
-			MaxActive: 12000,
-			Dial: func() (redis.Conn, error) {
-				c, err := redis.Dial("tcp", redisAddress)
-				if err != nil {
-					panic(err.Error())
-				} else {
-					log.Println("Connected to Redis")
-				}
-				return c, err
-			},
-		},
+		redis.NewClient(&redis.Options{
+			Addr:     redisAddress,
+			Password: readisPassword,
+			DB:       0, // use default DB
+		}),
 	}
 }
 
 func (m RedisCache) set(event *github.WorkflowRunEvent) {
-	client := m.pool.Get()
-	defer client.Close()
-
 	key := fmt.Sprintf("%d-%d", event.GetInstallation().GetID(), event.GetWorkflowRun().GetID())
-	_, err := client.Do("SET", key, event.GetWorkflow().GetName())
+	err := m.client.Set(context.Background(), key, event.GetWorkflow().GetName(), time.Hour*24*35)
 	if err != nil {
 		log.Printf("error setting key %s in Redis: err=%s\n", key, err)
 	}
 }
 
 func (m RedisCache) get(event *github.WorkflowJobEvent) string {
-	client := m.pool.Get()
-	defer client.Close()
-
 	key := fmt.Sprintf("%d-%d", event.GetInstallation().GetID(), event.GetWorkflowJob().GetRunID())
-	worfklowName, err := client.Do("GET", key)
+	worfklowName := m.client.Get(context.Background(), key)
 
-	if err != nil {
+	// Cache miss, we need to retrieve the workflow name from github
+	if worfklowName == nil {
 		workflowName := m.getWorkflowNameFromGitHub(event)
-		_, err := client.Do("SET", key, workflowName)
+		err := m.client.Set(context.Background(), key, workflowName, time.Hour*24*35)
 		if err != nil {
 			log.Printf("error setting key %s in Redis after a missed cache: err=%s\n", key, err)
 		}

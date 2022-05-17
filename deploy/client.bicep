@@ -1,8 +1,8 @@
 param location string = resourceGroup().location
 
-param registry_username string
+param registryUsername string
 @secure()
-param registry_password string
+param registryPassword string
 
 param port int = 8080
 param app_id string
@@ -11,8 +11,11 @@ param webhook_secret string
 @secure()
 param private_key string
 param env string
-param redisServer string
-param redisPort int = 6379
+param redisServerName string 
+
+resource redis 'Microsoft.Cache/redis@2021-06-01' existing = {
+  name: redisServerName
+}
 
 resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
   name: 'github-prometheus-client'
@@ -23,8 +26,8 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
     imageRegistryCredentials: [
       {
         server: 'ghcr.io'
-        username: registry_username
-        password: registry_password
+        username: registryUsername
+        password: registryPassword
       }
     ]
     containers: [
@@ -66,12 +69,12 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
               value: env
             }
             {
-              name: 'REDIS_SERVER'
-              value: redisServer
+              name: 'REDIS_ADDRESS'
+              value: '${redis.properties.hostName}:${redis.properties.sslPort}'
             }
             {
-              name: 'REDIS_PORT'
-              value: string(redisPort)
+              name: 'REDIS_PASSWORD'
+              value: redis.properties.accessKeys.primaryKey
             }
           ]
         }

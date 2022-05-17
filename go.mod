@@ -6,6 +6,7 @@ require github.com/prometheus/client_golang v1.12.1
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
+	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/golang-jwt/jwt/v4 v4.0.0 // indirect
 	github.com/google/go-github/v29 v29.0.2 // indirect
 	github.com/google/go-github/v41 v41.0.0 // indirect
@@ -16,6 +17,7 @@ require (
 	github.com/bradleyfalzon/ghinstallation v1.1.1
 	github.com/bradleyfalzon/ghinstallation/v2 v2.0.4
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/gomodule/redigo v1.8.8
 	github.com/google/go-github/v43 v43.0.0 // indirect
