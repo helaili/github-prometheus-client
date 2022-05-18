@@ -74,7 +74,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
             }
             {
               name: 'REDIS_PASSWORD'
-              value: redis.properties.accessKeys.primaryKey
+              secureValue: redis.properties.accessKeys.primaryKey
             }
           ]
         }
