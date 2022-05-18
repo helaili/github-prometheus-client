@@ -38,6 +38,8 @@ func main() {
 	installationHandlers = make(map[string]*InstallationHandler)
 	initializeInstallationHandlers(app_id, []byte(private_key))
 
+	http.HandleFunc("/ping", ping)
+
 	// This is the GitHub Webhook endpoint.
 	http.HandleFunc("/webhook", webhook)
 
@@ -57,9 +59,10 @@ func initializeEnv() (env string, private_key string, webhook_secret []byte, app
 	godotenv.Load()
 
 	private_key = os.Getenv("PRIVATE_KEY")
+	// Private key a one line string. For some reasons, '\n' are not interpreted correctly.
+	// We there for provide a string in the environment where '\n's are replaced with "^"s.
+	// We now need to put these \n in.
 	private_key = strings.Replace(private_key, "^", "\n", -1)
-
-	log.Printf("Private key is now %s \n", private_key)
 
 	app_id, err := strconv.ParseInt(os.Getenv("APP_ID"), 10, 36)
 	if err != nil {
@@ -105,6 +108,13 @@ func getInstallationHandler(installation_id int64) *InstallationHandler {
 		log.Printf("No handler for installation %d\n", installation_id)
 	}
 	return handler
+}
+
+func ping(w http.ResponseWriter, req *http.Request) {
+	defer req.Body.Close()
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte("Ok"))
 }
 
 /*
