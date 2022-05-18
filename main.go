@@ -27,16 +27,17 @@ func main() {
 	webhook_secret = secret
 	port := os.Getenv("PORT")
 
-	if env == "development" {
+	installationHandlers = make(map[string]*InstallationHandler)
+
+	if env == "development" || env == "dev" {
 		cache = NewLocalCache(app_id, []byte(private_key))
+		initializeDummyInstallationHandlers()
 	} else {
 		redisAddress := os.Getenv("REDIS_ADDRESS")
 		redisPassword := os.Getenv("REDIS_PASSWORD")
 		cache = NewRedisCache(redisAddress, redisPassword, app_id, []byte(private_key))
+		initializeInstallationHandlers(app_id, []byte(private_key))
 	}
-
-	installationHandlers = make(map[string]*InstallationHandler)
-	initializeInstallationHandlers(app_id, []byte(private_key))
 
 	http.HandleFunc("/ping", ping)
 
@@ -49,7 +50,7 @@ func main() {
 
 func initializeEnv() (env string, private_key string, webhook_secret []byte, app_id int64) {
 	env = os.Getenv("GITHUB_PROMETHEUS_CLIENT_ENV")
-	if env == "" {
+	if env == "" || env == "dev" {
 		env = "development"
 	}
 
@@ -58,19 +59,22 @@ func initializeEnv() (env string, private_key string, webhook_secret []byte, app
 	godotenv.Load(".env." + env)
 	godotenv.Load()
 
-	private_key = os.Getenv("PRIVATE_KEY")
-	// Private key a one line string. For some reasons, '\n' are not interpreted correctly.
-	// We there for provide a string in the environment where '\n's are replaced with "^"s.
-	// We now need to put these \n in.
-	private_key = strings.Replace(private_key, "^", "\n", -1)
+	if env == "development" {
+		return env, "dummy", []byte("dummy"), 0
+	} else {
+		private_key = os.Getenv("PRIVATE_KEY")
+		// Private key a one line string. For some reasons, '\n' are not interpreted correctly.
+		// We there for provide a string in the environment where '\n's are replaced with "^"s.
+		// We now need to put these \n in.
+		private_key = strings.Replace(private_key, "^", "\n", -1)
 
-	app_id, err := strconv.ParseInt(os.Getenv("APP_ID"), 10, 36)
-	if err != nil {
-		log.Fatal("Wrong format for APP_ID")
+		app_id, err := strconv.ParseInt(os.Getenv("APP_ID"), 10, 36)
+		if err != nil {
+			log.Fatal("Wrong format for APP_ID")
+		}
+		webhook_secret = []byte(os.Getenv("WEBHOOK_SECRET"))
+		return env, private_key, webhook_secret, app_id
 	}
-	webhook_secret = []byte(os.Getenv("WEBHOOK_SECRET"))
-
-	return env, private_key, webhook_secret, app_id
 }
 
 /*
@@ -100,6 +104,14 @@ func initializeInstallationHandlers(app_id int64, private_key []byte) {
 
 		listOptions.Page = res.NextPage
 	}
+}
+
+/*
+ * Initialize static handlers matching test datat for offline testing
+ */
+func initializeDummyInstallationHandlers() {
+	installationHandlers["24886277"] = NewInstallationHandler(24886277, cache)
+	installationHandlers["25140335"] = NewInstallationHandler(25140335, cache)
 }
 
 func getInstallationHandler(installation_id int64) *InstallationHandler {

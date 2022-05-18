@@ -3,3 +3,4 @@ github-prometheus-client
 .DS_Store
 bin
 *.pem
+test/prometheus/data-*
