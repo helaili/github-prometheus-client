@@ -3,19 +3,19 @@ param location string = resourceGroup().location
 
 param vaultName string
 param certName string
+param appGatewayName string
+param virtualNetworkName string
 param appGatewayIdentityName string 
+param appGatewaySubnetName string
 
+param appGatewayPublicFrontendIPName string = 'appGatewayPublicFrontendIP'
 param backendHTTPSettingName string = 'backendHTTPSetting'
 param backendPoolName string = 'backendPool'
 param backendSubnetName string = 'backendSubnet'
 param frontendHTTPListenerName string = 'frontendHTTPListener'
-param appGatewaySubnetName string = 'appGatewaySubnet'
-param appGatewayPublicFrontendIPName string = 'appGatewayPublicFrontendIP'
 param frontendSSLPortName string = 'frontendSSLPort'
 
-var virtualNetworkName = 'GHRoverVNet'
 var publicIPAddressName = 'GHRoverPublicIP'
-var appGatewayName = 'GHRoverAppGateway'
 var virtualNetworkPrefix = '10.0.0.0/16'
 var subnetPrefix = '10.0.0.0/24'
 var backendSubnetPrefix = '10.0.1.0/24'
@@ -146,14 +146,14 @@ resource appGateway 'Microsoft.Network/applicationGateways@2021-05-01' = {
         name: frontendHTTPListenerName
         properties: {
           frontendIPConfiguration: {
-            id: resourceId('Microsoft.Network/appGateways/frontendIPConfigurations', appGatewayName, appGatewayPublicFrontendIPName)
+            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', appGatewayName, appGatewayPublicFrontendIPName)
           }
           frontendPort: {
-            id: resourceId('Microsoft.Network/appGateways/frontendPorts', appGatewayName, frontendSSLPortName)
+            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', appGatewayName, frontendSSLPortName)
           }
           protocol: 'Https'
           sslCertificate: {
-            id: resourceId('Microsoft.Network/appGateways/sslCertificates', appGatewayName, cert.name)
+            id: resourceId('Microsoft.Network/applicationGateways/sslCertificates', appGatewayName, cert.name)
           }
           requireServerNameIndication: false
         }
@@ -165,13 +165,13 @@ resource appGateway 'Microsoft.Network/applicationGateways@2021-05-01' = {
         properties: {
           ruleType: 'Basic'
           httpListener: {
-            id: resourceId('Microsoft.Network/appGateways/httpListeners', appGatewayName, frontendHTTPListenerName)
+            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', appGatewayName, frontendHTTPListenerName)
           }
           backendAddressPool: {
-            id: resourceId('Microsoft.Network/appGateways/backendAddressPools', appGatewayName, backendPoolName)
+            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', appGatewayName, backendPoolName)
           }
           backendHttpSettings: {
-            id: resourceId('Microsoft.Network/appGateways/backendHttpSettingsCollection', appGatewayName, backendHTTPSettingName)
+            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', appGatewayName, backendHTTPSettingName)
           }
         }
       }

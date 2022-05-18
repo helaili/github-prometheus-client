@@ -3,15 +3,16 @@ param location string = resourceGroup().location
 param registryUsername string
 @secure()
 param registryPassword string
-
-param port int = 8080
-param app_id string
 @secure()
 param webhook_secret string
 @secure()
 param private_key string
+param portNumber string = '8080'
+param app_id string
 param env string
 param redisServerName string 
+param virtualNetworkName string
+param appGatewaySubnetName string
 
 resource redis 'Microsoft.Cache/redis@2021-06-01' existing = {
   name: redisServerName
@@ -37,7 +38,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
           image: 'ghcr.io/helaili/github-prometheus-client:main'
           ports: [
             {
-              port: port
+              port: int(portNumber)
               protocol: 'TCP'
             }
           ]
@@ -62,7 +63,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
             }
             {
               name: 'PORT'
-              value: string(port)
+              value: portNumber
             }
             {
               name: 'GITHUB_PROMETHEUS_CLIENT_ENV'
@@ -74,7 +75,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
             }
             {
               name: 'REDIS_PASSWORD'
-              secureValue: redis.properties.accessKeys.primaryKey
+              secureValue: redis.listKeys().primaryKey
             }
           ]
         }
@@ -84,15 +85,14 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
     restartPolicy: 'Always'
     subnetIds: [
       {
-        id: resourceId('Microsoft.Network/virtualNetworks/subnets', 'myVNet', 'myAGSubnet')
+        id: resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetworkName, appGatewaySubnetName)
       }
     ]
     ipAddress: {
       type: 'Private'
-      dnsNameLabel: 'ghrover'
       ports: [
         {
-          port: port
+          port: int(portNumber)
           protocol: 'TCP'
         }
       ]
