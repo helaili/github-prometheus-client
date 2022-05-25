@@ -44,4 +44,8 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-      
+    
+    - name: Azure Login
+      uses: Azure/login@v1.4.4
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
