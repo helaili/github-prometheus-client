@@ -30,12 +30,12 @@ func TestWorkflow(t *testing.T) {
 		{name: "01  installation created", path: "/", event: "installation", payloadFile: "test/installation/01_installation_25140335_created.json", expCode: http.StatusOK, expContent: ""},
 	}
 
-	_, private_key, _, app_id := initializeEnv()
+	_, _, _, app_id := initializeEnv()
 	installationHandlers = make(map[string]*InstallationHandler)
 	if cache == nil {
-		cache = NewLocalCache(app_id, []byte(private_key))
+		cache = NewOfflineCache(app_id)
 	}
-	initializeInstallationHandlers(app_id, []byte(private_key))
+	initializeDummyInstallationHandlers()
 
 	url, cleanup := setupTestAPI(t)
 	defer cleanup()
