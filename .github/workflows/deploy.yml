@@ -9,6 +9,10 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   CONTAINER_GROUP_PREFIX: github-prometheus-client
 
+permissions: 
+  id-token: write
+  packages: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -49,7 +53,9 @@ jobs:
     - name: Azure Login
       uses: Azure/login@v1.4.4
       with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     
     - name: Get currently deployed container ids
       run: echo "OLD_CONTAINER_IDS=$(az container list --resource-group $RESOURCE_GROUP --query '[].id' --out tsv)" >> $GITHUB_ENV
@@ -57,3 +63,4 @@ jobs:
     - name: Set the new container app name
       run: echo "CONTAINER_GROUP_NAME=${{ env.CONTAINER_GROUP_PREFIX }}-${GITHUB_SHA::7}"
 
+        
