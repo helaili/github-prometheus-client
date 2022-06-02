@@ -77,9 +77,8 @@ jobs:
     
     - name: Get currently deployed container ids
       id: oldContainers
-      run: echo "::set-output name=value::$(az container list --resource-group ${{ env.RESOURCE_GROUP }})"
-      # run: echo "OLD_CONTAINER_IDS=$(az container list --resource-group ${{ env.RESOURCE_GROUP }} --query '[].id' --out tsv)" >> $GITHUB_ENV
-  
+      run: echo "::set-output name=value::$(az container list --resource-group ${{ env.RESOURCE_GROUP }} --query "[].id" --out json)"
+      
     - name: Set the new container app name
       run: echo "CONTAINER_GROUP_NAME=${{ env.CONTAINER_GROUP_PREFIX }}-${GITHUB_SHA::7}" >> $GITHUB_ENV
 
@@ -95,15 +94,21 @@ jobs:
             virtualNetworkName=${{ env.VNET_NAME }} backendSubnetName=${{ env.BACKEND_SUBNET_NAME }} \
             portNumber=${{ env.PORT }} environment=production
     
+    - name: Retrieve new container IP address
+      id: ipAddress
+      run: echo "::set-output name=value::$(az container show --name ${{ env.CONTAINER_GROUP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query "ipAddress.ip" --out tsv)"
+
+    - name: Build IP address array
+      id: ipAddressArray
+      run: echo "::set-output name=value::[{\"ipAddress\":\"${{ steps.ipAddress.outputs.value }}\"}]"
+
     - name: Update application gateway
       run: | 
-        echo "IP_ADDRESS=$(az container show --name ${{ env.CONTAINER_GROUP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query "ipAddress.ip" --out tsv)" >> $GITHUB_ENV
-        echo "BACKEND_ADDRESSES=[{\"ipAddress\":\"${{ env.IP_ADDRESS }}\"}]" >> $GITHUB_ENV
         az network application-gateway address-pool update \
           --resource-group ${{ env.RESOURCE_GROUP }}  \
           --gateway-name ${{ env.APP_GW_NAME }} \
           --name ${{ env.PROM_CLIENT_BACKEND_POOL }} \
-          --set backendAddresses=${{ env.BACKEND_ADDRESSES }}
+          --set backendAddresses=${{ steps.ipAddressArray.outputs.value }}
     
 
 
