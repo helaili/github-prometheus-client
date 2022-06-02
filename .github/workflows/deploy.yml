@@ -8,10 +8,12 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   RESOURCE_GROUP: GH-Rover
+  APP_GW_NAME: GHRoverAppGateway
   CONTAINER_GROUP_PREFIX: github-prometheus-client
   CONTAINER_GROUP_NAME: unknown yet
   PORT: 8080
   BACKEND_SUBNET_NAME: backendSubnet
+  PROM_CLIENT_BACKEND_POOL: prometheusClientBackendPool
   VNET_NAME: GHRoverVNet
   REDIS_SERVER_NAME: ghrover-redis
 
@@ -90,5 +92,16 @@ jobs:
             redisServerName=${{ env.REDIS_SERVER_NAME }} \
             virtualNetworkName=${{ env.VNET_NAME }} backendSubnetName=${{ env.BACKEND_SUBNET_NAME }} \
             portNumber=${{ env.PORT }} environment=production
+    
+    - name: Update application gateway
+      run: | 
+        echo "IP_ADDRESS=$(az container show --name $CONTAINER_GROUP_NAME --resource-group ${{ env.RESOURCE_GROUP }} --query "ipAddress.ip" --out tsv)" >> $GITHUB_ENV
+        echo "BACKEND_ADDRESSES=[{\"ipAddress\":\"${{ env.IP_ADDRESS }}\"}]" >> $GITHUB_ENV
+        az network application-gateway address-pool update \
+          --resource-group ${{ env.RESOURCE_GROUP }}  \
+          --gateway-name ${{ env.APP_GW_NAME }}\
+          --name ${{ env.PROM_CLIENT_BACKEND_POOL }}\
+          --set backendAddresses=${{ env.BACKEND_ADDRESSES }}
+
 
         
