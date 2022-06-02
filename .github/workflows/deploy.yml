@@ -109,7 +109,7 @@ jobs:
           --resource-group ${{ env.RESOURCE_GROUP }}  \
           --gateway-name ${{ env.APP_GW_NAME }} \
           --name ${{ env.PROM_CLIENT_BACKEND_POOL }} \
-          --set backendAddresses=${{ steps.ipAddressArray.outputs.value }}
+          --set backendAddresses=${{ toJSON(steps.ipAddressArray.outputs.value) }}
 
     - name: Remove old container apps
       run: | 
