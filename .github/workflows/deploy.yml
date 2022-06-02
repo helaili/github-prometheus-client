@@ -109,6 +109,11 @@ jobs:
           --gateway-name ${{ env.APP_GW_NAME }} \
           --name ${{ env.PROM_CLIENT_BACKEND_POOL }} \
           --set backendAddresses=${{ steps.ipAddressArray.outputs.value }}
+
+    - name: Update application gateway
+      run: | 
+        az container delete --yes --ids ${{ join(steps.oldContainers.outputs.value, ' ') }}
+      
     
 
 
