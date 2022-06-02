@@ -95,12 +95,12 @@ jobs:
     
     - name: Update application gateway
       run: | 
-        echo "IP_ADDRESS=$(az container show --name $CONTAINER_GROUP_NAME --resource-group ${{ env.RESOURCE_GROUP }} --query "ipAddress.ip" --out tsv)" >> $GITHUB_ENV
+        echo "IP_ADDRESS=$(az container show --name ${{ env.CONTAINER_GROUP_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query "ipAddress.ip" --out tsv)" >> $GITHUB_ENV
         echo "BACKEND_ADDRESSES=[{\"ipAddress\":\"${{ env.IP_ADDRESS }}\"}]" >> $GITHUB_ENV
         az network application-gateway address-pool update \
           --resource-group ${{ env.RESOURCE_GROUP }}  \
-          --gateway-name ${{ env.APP_GW_NAME }}\
-          --name ${{ env.PROM_CLIENT_BACKEND_POOL }}\
+          --gateway-name ${{ env.APP_GW_NAME }} \
+          --name ${{ env.PROM_CLIENT_BACKEND_POOL }} \
           --set backendAddresses=${{ env.BACKEND_ADDRESSES }}
 
 
