@@ -9,6 +9,11 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   RESOURCE_GROUP: GH-Rover
   CONTAINER_GROUP_PREFIX: github-prometheus-client
+  CONTAINER_GROUP_NAME: unknown yet
+  PORT: 8080
+  BACKEND_SUBNET_NAME: backendSubnet
+  VNET_NAME: GHRoverVNet
+  REDIS_SERVER_NAME: ghrover-redis
 
 permissions: 
   id-token: write
@@ -16,6 +21,7 @@ permissions:
 
 jobs:
   build:
+    name: Build and Publish
     runs-on: ubuntu-latest
     steps:
     - name: checkout
@@ -51,6 +57,12 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
     
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
     - name: Azure Login
       uses: Azure/login@v1.4.4
       with:
@@ -63,5 +75,14 @@ jobs:
   
     - name: Set the new container app name
       run: echo "CONTAINER_GROUP_NAME=${{ env.CONTAINER_GROUP_PREFIX }}-${GITHUB_SHA::7}"
+
+    - name: Create container app
+      run: az deployment group create --resource-group ${{ env.RESOURCE_GROUP }} --template-file deploy/client.bicep \
+              --parameters containerGroupName=${{ env.CONTAINER_GROUP_NAME }} \
+               registryPassword=${{ secrets.$REGISTRY_PASSWORD }} registryUsername=${{ secrets.$REGISTRY_USERNAME }} \
+               app_id=${{ secrets.APP_ID }} webhook_secret=${{ secrets.WEBHOOK_SECRET }} private_key=${{ secrets.PRIVATE_KEY }} \
+               redisServerName=${{ env.REDIS_SERVER_NAME }}\
+               virtualNetworkName=${{ env.VNET_NAME }} backendSubnetName=${{ env.BACKEND_SUBNET_NAME }}\
+               portNumber=${{ env.PORT }} environment=${{ jobs.deploy.environment }}
 
         

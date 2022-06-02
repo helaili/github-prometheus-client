@@ -7,11 +7,11 @@ param appGatewayName string
 param virtualNetworkName string
 param appGatewayIdentityName string 
 param appGatewaySubnetName string
+param prometheusClientBackendPoolName string
 
 param appGatewayPublicFrontendIPName string = 'appGatewayPublicFrontendIP'
 param backendHTTPSettingName string = 'backendHTTPSetting'
-param backendPoolName string = 'backendPool'
-param backendSubnetName string = 'backendSubnet'
+param backendSubnetName string
 param frontendHTTPListenerName string = 'frontendHTTPListener'
 param frontendSSLPortName string = 'frontendSSLPort'
 
@@ -72,6 +72,14 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2021-05-01' = {
           addressPrefix: backendSubnetPrefix
           privateEndpointNetworkPolicies: 'Enabled'
           privateLinkServiceNetworkPolicies: 'Enabled'
+          delegations: [
+            {
+              name: 'ContainerInstance'
+              properties: {
+                serviceName: 'Microsoft.ContainerInstance/containerGroups'
+              }
+            }
+          ]
         }
       }
     ]
@@ -125,19 +133,64 @@ resource appGateway 'Microsoft.Network/applicationGateways@2021-05-01' = {
     ]
     backendAddressPools: [
       {
-        name: backendPoolName
+        name: prometheusClientBackendPoolName
         properties: {}
+      }
+    ]
+    probes: [
+      {
+        name: 'ping'
+        properties: {
+          host: '127.0.0.1'
+          path: '/ping'
+          interval: 30
+          timeout: 30
+          unhealthyThreshold: 3
+        }
       }
     ]
     backendHttpSettingsCollection: [
       {
         name: backendHTTPSettingName
         properties: {
-          port: 80
+          port: 8080
           protocol: 'Http'
           cookieBasedAffinity: 'Disabled'
           pickHostNameFromBackendAddress: false
           requestTimeout: 20
+          probe: {
+            id: resourceId('Microsoft.Network/applicationGateways/probes', appGatewayName, 'ping')
+          }
+        }
+      }
+    ]
+    urlPathMaps: [
+      {
+        name: 'prometheus-client-path-map'
+        properties: {
+          defaultBackendAddressPool: {
+            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', appGatewayName, prometheusClientBackendPoolName)
+          }
+          defaultBackendHttpSettings: {
+            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', appGatewayName, backendHTTPSettingName)
+          }
+          pathRules: [
+            {
+              name: 'ping'
+              properties: {
+                backendHttpSettings: {
+                  id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', appGatewayName, backendHTTPSettingName)
+                }
+                backendAddressPool: {
+                  id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', appGatewayName, prometheusClientBackendPoolName)
+                }
+                paths: [
+                  '/ping'
+                  '/webhook'
+                ]
+              }
+            }
+          ]
         }
       }
     ]
@@ -145,13 +198,13 @@ resource appGateway 'Microsoft.Network/applicationGateways@2021-05-01' = {
       {
         name: frontendHTTPListenerName
         properties: {
+          protocol: 'Https'
           frontendIPConfiguration: {
             id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', appGatewayName, appGatewayPublicFrontendIPName)
           }
           frontendPort: {
             id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', appGatewayName, frontendSSLPortName)
           }
-          protocol: 'Https'
           sslCertificate: {
             id: resourceId('Microsoft.Network/applicationGateways/sslCertificates', appGatewayName, cert.name)
           }
@@ -163,15 +216,12 @@ resource appGateway 'Microsoft.Network/applicationGateways@2021-05-01' = {
       {
         name: 'routingRule'
         properties: {
-          ruleType: 'Basic'
+          ruleType: 'PathBasedRouting'
           httpListener: {
             id: resourceId('Microsoft.Network/applicationGateways/httpListeners', appGatewayName, frontendHTTPListenerName)
           }
-          backendAddressPool: {
-            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', appGatewayName, backendPoolName)
-          }
-          backendHttpSettings: {
-            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', appGatewayName, backendHTTPSettingName)
+          urlPathMap: {
+            id: resourceId('Microsoft.Network/applicationGateways/urlPathMaps', appGatewayName, 'prometheus-client-path-map')
           }
         }
       }

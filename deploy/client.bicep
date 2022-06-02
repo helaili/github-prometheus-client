@@ -1,5 +1,5 @@
 param location string = resourceGroup().location
-
+param containerGroupName string 
 param registryUsername string
 @secure()
 param registryPassword string
@@ -9,19 +9,18 @@ param webhook_secret string
 param private_key string
 param portNumber string = '8080'
 param app_id string
-param env string
+param environment string
 param redisServerName string 
 param virtualNetworkName string
-param appGatewaySubnetName string
+param backendSubnetName string
 
 resource redis 'Microsoft.Cache/redis@2021-06-01' existing = {
   name: redisServerName
 }
 
 resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
-  name: 'github-prometheus-client'
+  name: containerGroupName
   location: location
-
   properties: {
     sku: 'Standard'
     imageRegistryCredentials: [
@@ -67,7 +66,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
             }
             {
               name: 'GITHUB_PROMETHEUS_CLIENT_ENV'
-              value: env
+              value: environment
             }
             {
               name: 'REDIS_ADDRESS'
@@ -85,7 +84,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
     restartPolicy: 'Always'
     subnetIds: [
       {
-        id: resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetworkName, appGatewaySubnetName)
+        id: resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetworkName, backendSubnetName)
       }
     ]
     ipAddress: {
@@ -99,4 +98,3 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
     }
   }
 }
-
