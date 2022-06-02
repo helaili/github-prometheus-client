@@ -76,7 +76,9 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     
     - name: Get currently deployed container ids
-      run: echo "OLD_CONTAINER_IDS=$(az container list --resource-group ${{ env.RESOURCE_GROUP }} --query '[].id' --out tsv)" >> $GITHUB_ENV
+      id: oldContainers
+      run: echo "::set-output name=value::$(az container list --resource-group ${{ env.RESOURCE_GROUP }})"
+      # run: echo "OLD_CONTAINER_IDS=$(az container list --resource-group ${{ env.RESOURCE_GROUP }} --query '[].id' --out tsv)" >> $GITHUB_ENV
   
     - name: Set the new container app name
       run: echo "CONTAINER_GROUP_NAME=${{ env.CONTAINER_GROUP_PREFIX }}-${GITHUB_SHA::7}" >> $GITHUB_ENV
@@ -102,6 +104,7 @@ jobs:
           --gateway-name ${{ env.APP_GW_NAME }} \
           --name ${{ env.PROM_CLIENT_BACKEND_POOL }} \
           --set backendAddresses=${{ env.BACKEND_ADDRESSES }}
+    
 
 
         
