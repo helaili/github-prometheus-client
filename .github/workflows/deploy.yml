@@ -24,13 +24,13 @@ jobs:
     name: Build and Publish
     runs-on: ubuntu-latest
     steps:
-    - name: checkout
+    - name: Checkout
       uses: actions/checkout@v3
 
-    - name: build
+    - name: Build
       run: make build
 
-    - name: test
+    - name: Test
       run: make test
       env:
         APP_ID: ${{ secrets.APP_ID }}
@@ -63,6 +63,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
     - name: Azure Login
       uses: Azure/login@v1.4.4
       with:
@@ -81,8 +84,8 @@ jobs:
               --parameters containerGroupName=${{ env.CONTAINER_GROUP_NAME }} \
                registryPassword=${{ secrets.REGISTRY_PASSWORD }} registryUsername=${{ secrets.REGISTRY_USERNAME }} \
                app_id=${{ secrets.APP_ID }} webhook_secret=${{ secrets.WEBHOOK_SECRET }} private_key=${{ secrets.PRIVATE_KEY }} \
-               redisServerName=${{ env.REDIS_SERVER_NAME }}\
-               virtualNetworkName=${{ env.VNET_NAME }} backendSubnetName=${{ env.BACKEND_SUBNET_NAME }}\
+               redisServerName=${{ env.REDIS_SERVER_NAME }} \
+               virtualNetworkName=${{ env.VNET_NAME }} backendSubnetName=${{ env.BACKEND_SUBNET_NAME }} \
                portNumber=${{ env.PORT }} environment=${{ github.jobs.deploy.environment }}
 
         
