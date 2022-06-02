@@ -59,29 +59,6 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
 
-  test:
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    
-    - name: Azure Login
-      uses: Azure/login@v1.4.4
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-    
-    - name: Get currently deployed container ids
-      id: oldContainers
-      run: echo "::set-output name=value::$(az container list --resource-group ${{ env.RESOURCE_GROUP }} --query "[].id | join(' ', @)" --out json)"
-    
-    - name: Remove old container apps
-      run: | 
-        echo ${{ steps.oldContainers.outputs.value }}
-      
-
   deploy:
     name: Deploy
     needs: build
@@ -100,7 +77,7 @@ jobs:
     
     - name: Get currently deployed container ids
       id: oldContainers
-      run: echo "::set-output name=value::$(az container list --resource-group ${{ env.RESOURCE_GROUP }} --query "[].id | join(' ', @)" --out json)"
+      run: echo "::set-output name=value::$(az container list --resource-group ${{ env.RESOURCE_GROUP }} --query "[].id | join(' ', @)" --out tsv)"
       
     - name: Set the new container app name
       run: echo "CONTAINER_GROUP_NAME=${{ env.CONTAINER_GROUP_PREFIX }}-${GITHUB_SHA::7}" >> $GITHUB_ENV
@@ -135,6 +112,5 @@ jobs:
 
     - name: Remove old container apps
       run: | 
-        echo ${{ steps.oldContainers.outputs.value }}
         az container delete --yes --ids ${{ steps.oldContainers.outputs.value }}
       
