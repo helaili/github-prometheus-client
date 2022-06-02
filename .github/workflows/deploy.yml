@@ -113,7 +113,7 @@ jobs:
 
     - name: Remove old container apps
       run: | 
-        az container delete --yes --ids ${{ join(steps.oldContainers.outputs.value, ' ') }}
+        az container delete --yes --ids ${{ join(fromJSON(steps.oldContainers.outputs.value, ' ')) }}
       
     
 
