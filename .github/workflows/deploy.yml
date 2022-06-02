@@ -83,6 +83,6 @@ jobs:
                app_id=${{ secrets.APP_ID }} webhook_secret=${{ secrets.WEBHOOK_SECRET }} private_key=${{ secrets.PRIVATE_KEY }} \
                redisServerName=${{ env.REDIS_SERVER_NAME }}\
                virtualNetworkName=${{ env.VNET_NAME }} backendSubnetName=${{ env.BACKEND_SUBNET_NAME }}\
-               portNumber=${{ env.PORT }} environment=${{ jobs.deploy.environment }}
+               portNumber=${{ env.PORT }} environment=${{ github.jobs.deploy.environment }}
 
         
