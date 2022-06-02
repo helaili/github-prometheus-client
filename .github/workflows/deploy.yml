@@ -75,7 +75,7 @@ jobs:
     
     - name: Get currently deployed container ids
       id: oldContainers
-      run: echo "::set-output name=value::$(az container list --resource-group ${{ env.RESOURCE_GROUP }} --query "[].id" --out json)"
+      run: echo "::set-output name=value::$(az container list --resource-group ${{ env.RESOURCE_GROUP }} --query "[].id | join(' ', @)" --out json)"
     
     - name: Remove old container apps
       run: | 
@@ -100,7 +100,7 @@ jobs:
     
     - name: Get currently deployed container ids
       id: oldContainers
-      run: echo "::set-output name=value::$(az container list --resource-group ${{ env.RESOURCE_GROUP }} --query "[].id" --out json)"
+      run: echo "::set-output name=value::$(az container list --resource-group ${{ env.RESOURCE_GROUP }} --query "[].id | join(' ', @)" --out json)"
       
     - name: Set the new container app name
       run: echo "CONTAINER_GROUP_NAME=${{ env.CONTAINER_GROUP_PREFIX }}-${GITHUB_SHA::7}" >> $GITHUB_ENV
@@ -136,5 +136,5 @@ jobs:
     - name: Remove old container apps
       run: | 
         echo ${{ steps.oldContainers.outputs.value }}
-        az container delete --yes --ids ${{ join(fromJSON(steps.oldContainers.outputs.value), ' ') }}
+        az container delete --yes --ids ${{ steps.oldContainers.outputs.value }}
       
