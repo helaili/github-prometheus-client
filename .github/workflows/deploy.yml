@@ -84,10 +84,11 @@ jobs:
         az deployment group create \
           --resource-group ${{ env.RESOURCE_GROUP }} \
           --template-file deploy/client.bicep \
-          --parameters containerGroupName=${{ env.CONTAINER_GROUP_NAME }} registryPassword=${{ secrets.REGISTRY_PASSWORD }} registryUsername=${{ secrets.REGISTRY_USERNAME }} \
+          --parameters containerGroupName=${{ env.CONTAINER_GROUP_NAME }} \
+            registryPassword=${{ secrets.REGISTRY_PASSWORD }} registryUsername=${{ secrets.REGISTRY_USERNAME }} \
             app_id=${{ secrets.APP_ID }} webhook_secret=${{ secrets.WEBHOOK_SECRET }} private_key=${{ secrets.PRIVATE_KEY }} \
             redisServerName=${{ env.REDIS_SERVER_NAME }} \
             virtualNetworkName=${{ env.VNET_NAME }} backendSubnetName=${{ env.BACKEND_SUBNET_NAME }} \
-            portNumber=${{ env.PORT }} environment=${{ github.jobs.deploy.environment }}
+            portNumber=${{ env.PORT }} environment=production
 
         
