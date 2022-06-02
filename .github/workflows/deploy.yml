@@ -74,7 +74,7 @@ jobs:
       run: echo "OLD_CONTAINER_IDS=$(az container list --resource-group ${{ env.RESOURCE_GROUP }} --query '[].id' --out tsv)" >> $GITHUB_ENV
   
     - name: Set the new container app name
-      run: echo "CONTAINER_GROUP_NAME=${{ env.CONTAINER_GROUP_PREFIX }}-${GITHUB_SHA::7}"
+      run: echo "CONTAINER_GROUP_NAME=${{ env.CONTAINER_GROUP_PREFIX }}-${GITHUB_SHA::7}" >> $GITHUB_ENV
 
     - name: Create container app
       run: az deployment group create --resource-group ${{ env.RESOURCE_GROUP }} --template-file deploy/client.bicep \
