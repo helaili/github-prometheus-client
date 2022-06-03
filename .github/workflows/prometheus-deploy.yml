@@ -37,7 +37,7 @@ jobs:
     
     - name: Get storage access key
       id: storageAccessKey
-      run: echo "::set-output name=value::$(az storage account keys list --resource-group $RESOURCE_GROUP --account-name ghroverstorage --query "[0].value" --out tsv)
+      run: echo "::set-output name=value::$(az storage account keys list --resource-group  ${{ env.RESOURCE_GROUP }} --account-name ${{ env.STORAGE_NAME }} --query "[0].value" --out tsv)"
     
     - name: Generate and upload Prometeus configuration file
       run: | 
