@@ -16,6 +16,8 @@ env:
   PROM_CLIENT_BACKEND_POOL: prometheusClientBackendPool
   VNET_NAME: GHRoverVNet
   REDIS_SERVER_NAME: ghrover-redis
+  PRIVATE_DOMAIN_NAME: ghrover-private.com
+  COLLECTOR_DNS_NAME: collector
 
 permissions: 
   id-token: write
@@ -113,4 +115,9 @@ jobs:
     - name: Remove old container apps
       run: | 
         az container delete --yes --ids ${{ steps.oldContainers.outputs.value }}
+
+    - name: Update private DNS record
+      run: | 
+        az network private-dns record-set a delete --resource-group ${{ env.RESOURCE_GROUP }} --zone-name ${{ env.PRIVATE_DOMAIN_NAME }} --name ${{ env.COLLECTOR_DNS_NAME }} --yes
+        az network private-dns record-set a add-record --resource-group ${{ env.RESOURCE_GROUP }} --zone-name ${{ env.PRIVATE_DOMAIN_NAME }} --ipv4-address ${{ steps.ipAddress.outputs.value }} --record-set-name ${{ env.COLLECTOR_DNS_NAME }}
       

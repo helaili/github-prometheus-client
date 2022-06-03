@@ -35,6 +35,12 @@ resource existing_identity 'Microsoft.ManagedIdentity/userAssignedIdentities@201
   name : appGatewayIdentityName
 }
 
+// This was not tested
+resource privateDNSZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
+  name: 'ghrover-private.com'
+  location: location
+}
+
 resource publicIPAddress 'Microsoft.Network/publicIPAddresses@2021-05-01' = {
   name: publicIPAddressName
   location: location
