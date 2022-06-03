@@ -37,11 +37,16 @@ jobs:
     
     - name: Get storage access key
       id: storageAccessKey
-      run: echo "::set-output name=value::$(az storage account keys list --resource-group  ${{ env.RESOURCE_GROUP }} --account-name ${{ env.STORAGE_NAME }} --query "[0].value" --out tsv)"
+      run: |
+        echo "::set-output name=value::$(az storage account keys list --resource-group  ${{ env.RESOURCE_GROUP }} --account-name ${{ env.STORAGE_NAME }} --query "[0].value" --out tsv)"
+    
+    - name: Mask the storage access key
+      run: |
+        echo "::add-mask::${{ steps.storageAccessKey.outputs.value }}"
     
     - name: Generate and upload Prometeus configuration file
       run: | 
-        sed -i '' 's/${installation}/${{github.event.inputs.installation}}"/g' deploy/prometheus.yml
+        sed -i 's/${installation}/${{github.event.inputs.installation}}"/g' deploy/prometheus.yml
         az storage file upload --account-name ${{ env.STORAGE_NAME }}  --account-key ${{ steps.storageAccessKey.outputs.value }} --share-name prometheus-${{github.event.inputs.installation}}-config --path prometheus.yml --source deploy/prometheus.yml
 
     - name: Provision a Prometheus instance
