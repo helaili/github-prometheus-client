@@ -5,6 +5,8 @@ param location string = resourceGroup().location
 param storageName string
 
 param installation string
+param virtualNetworkName string
+param backendSubnetName string
 
 resource storage 'Microsoft.Storage/storageAccounts@2021-08-01' existing = {
   name: storageName
@@ -65,6 +67,11 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
     ]
     osType: 'Linux'
     restartPolicy: 'Always'
+    subnetIds: [
+      {
+        id: resourceId('Microsoft.Network/virtualNetworks/subnets', virtualNetworkName, backendSubnetName)
+      }
+    ]
     ipAddress: {
       type: 'Public'
       dnsNameLabel: 'prometheus-${installation}-ghrover'

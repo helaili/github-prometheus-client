@@ -10,7 +10,9 @@ on:
 env:
   RESOURCE_GROUP: GH-Rover
   STORAGE_NAME: ghroverstorage
-
+  BACKEND_SUBNET_NAME: backendSubnet
+  VNET_NAME: GHRoverVNet
+  
 permissions: 
   id-token: write
 
@@ -52,6 +54,7 @@ jobs:
     - name: Provision a Prometheus instance
       run: |
         az deployment group create --resource-group ${{ env.RESOURCE_GROUP }} --template-file deploy/prometheus.bicep \
-          --parameters storageName=${{ env.STORAGE_NAME }} installation=${{github.event.inputs.installation}}
+          --parameters storageName=${{ env.STORAGE_NAME }} installation=${{github.event.inputs.installation}} \
+            virtualNetworkName=${{ env.VNET_NAME }} backendSubnetName=${{ env.BACKEND_SUBNET_NAME }} \
     
    
