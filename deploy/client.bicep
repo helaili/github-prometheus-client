@@ -89,6 +89,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
     ]
     ipAddress: {
       type: 'Private'
+      dnsNameLabel: 'ghrover'
       ports: [
         {
           port: int(portNumber)
