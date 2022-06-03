@@ -73,8 +73,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
       }
     ]
     ipAddress: {
-      type: 'Public'
-      dnsNameLabel: 'prometheus-${installation}-ghrover'
+      type: 'Private'
       ports: [
         {
           port: 9090
