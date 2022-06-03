@@ -6,25 +6,8 @@ param storageName string
 
 param installation string
 
-resource storage 'Microsoft.Storage/storageAccounts@2021-08-01' = {
+resource storage 'Microsoft.Storage/storageAccounts@2021-08-01' existing = {
   name: storageName
-  location: location
-  sku: {
-    name: 'Standard_LRS'
-  }
-  kind: 'StorageV2'
-
-  resource fileServices 'fileServices@2021-08-01' = {
-    name: 'default'
-
-    resource data 'shares@2021-08-01' = {
-      name: 'prometheus-${installation}-data'
-    }
-
-    resource config 'shares@2021-08-01' = {
-      name: 'prometheus-${installation}-config'
-    }
-  }
 }
 
 resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {

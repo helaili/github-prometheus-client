@@ -24,4 +24,8 @@ scrape_configs:
     # metrics_path defaults to '/metrics'
     # scheme defaults to 'http'.
     static_configs:
-      - targets: ["prometheus-24886277-ghrover.azurewebsites.net"]
+      - targets: ["prometheus-${installation}-ghrover.eastus2.azurecontainer.io"]
+  - job_name: "actions"
+    metrics_path: "/metrics-${installation}"
+    static_configs:
+      - targets: ["collector.ghrover-private.com:8080"]
