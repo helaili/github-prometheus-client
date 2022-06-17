@@ -40,11 +40,9 @@ jobs:
     - name: Get storage access key
       id: storageAccessKey
       run: |
-        echo "::set-output name=value::$(az storage account keys list --resource-group  ${{ env.RESOURCE_GROUP }} --account-name ${{ env.STORAGE_NAME }} --query "[0].value" --out tsv)"
-    
-    - name: Mask the storage access key
-      run: |
-        echo "::add-mask::${{ steps.storageAccessKey.outputs.value }}"
+        storageAccessKey=$(az storage account keys list --resource-group  ${{ env.RESOURCE_GROUP }} --account-name ${{ env.STORAGE_NAME }} --query "[0].value" --out tsv)
+        echo "::add-mask::${storageAccessKey}"
+        echo "::set-output name=value::${storageAccessKey}"
     
     - name: Generate and upload Prometeus configuration file
       run: | 

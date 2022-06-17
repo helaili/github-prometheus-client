@@ -21,6 +21,10 @@ resource redis 'Microsoft.Cache/redis@2021-06-01' existing = {
 resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
   name: containerGroupName
   location: location
+  tags: {
+    'type': 'client'
+    'active': 'true'
+  }
   properties: {
     sku: 'Standard'
     imageRegistryCredentials: [

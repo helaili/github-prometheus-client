@@ -8,6 +8,7 @@ param virtualNetworkName string
 param appGatewayIdentityName string 
 param appGatewaySubnetName string
 param prometheusClientBackendPoolName string
+param prometheusBackendPoolName string
 
 param appGatewayPublicFrontendIPName string = 'appGatewayPublicFrontendIP'
 param backendHTTPSettingName string = 'backendHTTPSetting'
@@ -20,6 +21,9 @@ var virtualNetworkPrefix = '10.0.0.0/16'
 var subnetPrefix = '10.0.0.0/24'
 var backendSubnetPrefix = '10.0.1.0/24'
 
+
+param prometheusIPs array = []
+param prometheusClientIPs array = []
 
 resource networkingSecretsKeyVault 'Microsoft.KeyVault/vaults@2019-09-01' existing = {
   scope: resourceGroup()
@@ -140,7 +144,15 @@ resource appGateway 'Microsoft.Network/applicationGateways@2021-05-01' = {
     backendAddressPools: [
       {
         name: prometheusClientBackendPoolName
-        properties: {}
+        properties: {
+          backendAddresses: prometheusClientIPs
+        }
+      }
+      {
+        name: prometheusBackendPoolName
+        properties: {
+          backendAddresses: prometheusIPs
+        }
       }
     ]
     probes: [
@@ -167,6 +179,15 @@ resource appGateway 'Microsoft.Network/applicationGateways@2021-05-01' = {
           probe: {
             id: resourceId('Microsoft.Network/applicationGateways/probes', appGatewayName, 'ping')
           }
+        }
+      }
+      {
+        name: 'prometheusBackendSettings'
+        properties: {
+          port: 9090
+          protocol: 'Http'
+          cookieBasedAffinity: 'Disabled'
+          requestTimeout: 20
         }
       }
     ]

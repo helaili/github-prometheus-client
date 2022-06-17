@@ -1,0 +1,40 @@
+name: Environment Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      ressource_group:
+        description: 'Name of the ressource group that will be provisionned'
+        required: true
+        default: 'GH-Orbiter'
+      environment:
+        type: environment
+
+permissions: 
+  id-token: write
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: ${{ environment }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
+    - name: Azure Login
+      uses: Azure/login@v1.4.4
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    
+    - name: Get Client IP adresses 
+      run: |
+        clientIPs=$(az container list --resource-group ${{ inputs.ressource_group }} --query "[?tags.active == 'true' && tags.type == 'client'].{ipAddress: ipAddress.ip}" )
+
+    - name: Get Prometheus IP adresses 
+      run: |
+        prometheusIPs=$(az container list --resource-group ${{ inputs.ressource_group }} --query "[?tags.active == 'true' && tags.type == 'prometheus'].{ipAddress: ipAddress.ip}" )
+        
+    

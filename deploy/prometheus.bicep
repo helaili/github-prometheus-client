@@ -15,7 +15,10 @@ resource storage 'Microsoft.Storage/storageAccounts@2021-08-01' existing = {
 resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01' = {
   name: 'prometheus-${installation}-ghrover'
   location: location
-
+  tags: {
+    'type': 'prometheus'
+    'active': 'true'
+  }
   properties: {
     containers: [
       {
@@ -73,7 +76,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
       }
     ]
     ipAddress: {
-      type: 'Private'
+      type: 'Private' 
       ports: [
         {
           port: 9090
