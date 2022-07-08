@@ -13,6 +13,19 @@ on:
 permissions: 
   id-token: write
 
+environment:
+  APP_GW_NAME: GHRoverAppGateway
+  VNET_NAME: GHRoverVNet
+  APP_GW_SUBNET_NAME: appGatewaySubnet
+  BACKEND_SUBNET_NAME: backendSubnet
+  VAULT_NAME: GHRoverVaultTest
+  CERT_NAME: GHRoverWebHookCert
+  APP_GW_IDENTITY: AppGatewayIdentity
+  PROM_CLIENT_BACKEND_POOL: prometheusClientBackendPool
+  PROM_BACKEND_POOL: prometheusBackendPool
+
+
+
 jobs:
   deploy:
     name: Deploy
@@ -30,11 +43,26 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     
     - name: Get Client IP adresses 
+      id: clientIPs
       run: |
         clientIPs=$(az container list --resource-group ${{ inputs.ressource_group }} --query "[?tags.active == 'true' && tags.type == 'client'].{ipAddress: ipAddress.ip}" )
+        echo "::set-output name=value::${clientIPs}"
+
 
     - name: Get Prometheus IP adresses 
+      id: prometheusIPs
       run: |
         prometheusIPs=$(az container list --resource-group ${{ inputs.ressource_group }} --query "[?tags.active == 'true' && tags.type == 'prometheus'].{ipAddress: ipAddress.ip}" )
+        echo "::set-output name=value::${prometheusIPs}"
         
-    
+    - name: Deploy the network environment 
+      run: |
+        az deployment group create --resource-group ${{ inputs.ressource_group }} --template-file deploy/network.bicep  \
+            --parameters appGatewayName=${{ env.APP_GW_NAME }} \
+                appGatewayIdentityName=${{ env.APP_GW_IDENTITY }} appGatewaySubnetName=${{ env.APP_GW_SUBNET_NAME }} \
+                virtualNetworkName=${{ env.VNET_NAME }} vaultName=${{ env.VAULT_NAME }} certName=${{ env.CERT_NAME }}  \
+                backendSubnetName=${{ env.BACKEND_SUBNET_NAME }} \
+                prometheusClientBackendPoolName=${{ env.PROM_CLIENT_BACKEND_POOL }} prometheusBackendPoolName=${{ env.PROM_BACKEND_POOL }} \
+                prometheusIPs=${{ steps.prometheusIPs.outputs.value }} \
+                prometheusClientIPs=${{ steps.clientIPs.outputs.value }}
+                
