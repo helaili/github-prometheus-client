@@ -121,6 +121,7 @@ jobs:
           --set backendAddresses=${{ toJSON(steps.ipAddressArray.outputs.value) }}
 
     - name: Remove old container apps
+      if:  steps.oldContainers.outputs.value != null
       run: | 
         az container delete --yes --ids ${{ steps.oldContainers.outputs.value }}
 
