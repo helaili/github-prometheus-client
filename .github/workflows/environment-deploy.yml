@@ -6,7 +6,7 @@ on:
       ressource_group:
         description: 'Name of the ressource group that will be provisionned'
         required: true
-        default: 'GH-Orbiter'
+        default: 'GH-Rover'
       environment:
         type: environment
         default: 'production'
