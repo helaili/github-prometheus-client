@@ -8,6 +8,10 @@ on:
       - 'deploy/**'
   workflow_dispatch:
 
+concurrency: 
+  group: production
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
