@@ -47,15 +47,13 @@ jobs:
     - name: Get Client IP adresses 
       id: clientIPs
       run: |
-        clientIPs=$(az container list --resource-group ${{ inputs.ressource_group }} --query "[?tags.active == 'true' && tags.type == 'client'].{ipAddress: ipAddress.ip}" )
-        echo "::set-output name=value::${clientIPs}"
+        echo "::set-output name=value::$(az container list --resource-group ${{ inputs.ressource_group }} --query "[?tags.active == 'true' && tags.type == 'client'].{ipAddress: ipAddress.ip}")"
 
 
     - name: Get Prometheus IP adresses 
       id: prometheusIPs
       run: |
-        prometheusIPs=$(az container list --resource-group ${{ inputs.ressource_group }} --query "[?tags.active == 'true' && tags.type == 'prometheus'].{ipAddress: ipAddress.ip}" )
-        echo "::set-output name=value::${prometheusIPs}"
+        echo "::set-output name=value::$(az container list --resource-group ${{ inputs.ressource_group }} --query "[?tags.active == 'true' && tags.type == 'prometheus'].{ipAddress: ipAddress.ip}")"
         
     - name: Deploy the network environment 
       run: |
