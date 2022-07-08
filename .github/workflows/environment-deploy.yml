@@ -13,7 +13,7 @@ on:
 permissions: 
   id-token: write
 
-environment:
+env:
   APP_GW_NAME: GHRoverAppGateway
   VNET_NAME: GHRoverVNet
   APP_GW_SUBNET_NAME: appGatewaySubnet
