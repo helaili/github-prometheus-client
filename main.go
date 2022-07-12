@@ -167,8 +167,10 @@ func webhook(w http.ResponseWriter, req *http.Request) {
 		installationHandlers[fmt.Sprintf("%d", e.GetInstallation().GetID())] = NewInstallationHandler(e.GetInstallation().GetID(), cache)
 	default:
 		// log.Printf("unknown event type %s\n", github.WebHookType(req))
+		w.WriteHeader(http.StatusNotImplemented)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte("Ok"))
 }
