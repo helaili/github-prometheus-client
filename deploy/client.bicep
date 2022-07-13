@@ -74,7 +74,7 @@ resource containerGroup 'Microsoft.ContainerInstance/containerGroups@2021-09-01'
             }
             {
               name: 'REDIS_ADDRESS'
-              value: '${redis.properties.hostName}:${redis.properties.sslPort}'
+              value: '${redis.properties.hostName}:${redis.properties.port}'
             }
             {
               name: 'REDIS_PASSWORD'
