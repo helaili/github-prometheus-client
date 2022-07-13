@@ -16,7 +16,7 @@ type RedisCache struct {
 }
 
 func NewRedisCache(redisAddress string, readisPassword string, app_id int64, private_key []byte) *RedisCache {
-	log.Printf("Using the Redis cache at %s\n", redisAddress)
+	log.Printf("Using the Redis cache at %s with password %s\n", redisAddress, readisPassword)
 	return &RedisCache{
 		*NewAbstractCache(app_id, private_key),
 		redis.NewClient(&redis.Options{
