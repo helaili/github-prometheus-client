@@ -87,7 +87,7 @@ jobs:
     
     - name: Get currently deployed container ids
       id: oldContainers
-      run: echo "::set-output name=value::$(az container list --resource-group ${{ env.RESOURCE_GROUP }} --query "[].id | join(' ', @)" --out tsv)"
+      run: echo "::set-output name=value::$(az container list --resource-group ${{ env.RESOURCE_GROUP }} --query "[?tags.type == 'client'].id | join(' ', @)" --out tsv)"
       
     - name: Set the new container app name
       run: echo "CONTAINER_GROUP_NAME=${{ env.CONTAINER_GROUP_PREFIX }}-${GITHUB_SHA::7}" >> $GITHUB_ENV
