@@ -59,22 +59,18 @@ func initializeEnv() (env string, private_key string, webhook_secret []byte, app
 	godotenv.Load(".env." + env)
 	godotenv.Load()
 
-	if env == "development" {
-		return env, "dummy", []byte("dummy"), 0
-	} else {
-		private_key = os.Getenv("PRIVATE_KEY")
-		// Private key a one line string. For some reasons, '\n' are not interpreted correctly.
-		// We there for provide a string in the environment where '\n's are replaced with "^"s.
-		// We now need to put these \n in.
-		private_key = strings.Replace(private_key, "^", "\n", -1)
+	private_key = os.Getenv("PRIVATE_KEY")
+	// Private key a one line string. For some reasons, '\n' are not interpreted correctly.
+	// We therefore provide a string in the environment where '\n's are replaced with "^"s.
+	// We now need to put these \n in.
+	private_key = strings.Replace(private_key, "^", "\n", -1)
 
-		app_id, err := strconv.ParseInt(os.Getenv("APP_ID"), 10, 36)
-		if err != nil {
-			log.Fatal("Wrong format for APP_ID")
-		}
-		webhook_secret = []byte(os.Getenv("WEBHOOK_SECRET"))
-		return env, private_key, webhook_secret, app_id
+	app_id, err := strconv.ParseInt(os.Getenv("APP_ID"), 10, 36)
+	if err != nil {
+		log.Fatal("Wrong format for APP_ID")
 	}
+	webhook_secret = []byte(os.Getenv("WEBHOOK_SECRET"))
+	return env, private_key, webhook_secret, app_id
 }
 
 /*

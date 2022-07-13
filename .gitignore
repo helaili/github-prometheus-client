@@ -5,3 +5,4 @@ bin
 *.pem
 test/prometheus/data-*
 deploy/deploy-env.sh
+.vscode
