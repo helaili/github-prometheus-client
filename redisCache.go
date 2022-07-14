@@ -16,14 +16,24 @@ type RedisCache struct {
 }
 
 func NewRedisCache(redisAddress string, readisPassword string, app_id int64, private_key []byte) *RedisCache {
-	log.Printf("Using the Redis cache at %s with password %s\n", redisAddress, readisPassword)
+	log.Printf("Using the Redis cache at %s\n", redisAddress)
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     redisAddress,
+		Password: readisPassword,
+		DB:       0, // use default DB
+	})
+
+	var ctx = context.Background()
+	err := redisClient.Set(ctx, "test", "value", 1).Err()
+	if err != nil {
+		panic(err)
+	} else {
+		log.Println("Redis connected")
+	}
+
 	return &RedisCache{
 		*NewAbstractCache(app_id, private_key),
-		redis.NewClient(&redis.Options{
-			Addr:     redisAddress,
-			Password: readisPassword,
-			DB:       0, // use default DB
-		}),
+		redisClient,
 	}
 }
 

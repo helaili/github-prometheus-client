@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/bradleyfalzon/ghinstallation"
-	"github.com/go-redis/redis/v8"
 	"github.com/joho/godotenv"
 
 	"github.com/google/go-github/v43/github"
@@ -37,17 +36,6 @@ func main() {
 		redisAddress := os.Getenv("REDIS_ADDRESS")
 		redisPassword := os.Getenv("REDIS_PASSWORD")
 
-		var ctx = context.Background()
-		rdb := redis.NewClient(&redis.Options{
-			Addr:     redisAddress,
-			Password: redisPassword,
-		})
-		err := rdb.Set(ctx, "key", "value", 0).Err()
-		if err != nil {
-			panic(err)
-		} else {
-			log.Println("Redis connected")
-		}
 		cache = NewRedisCache(redisAddress, redisPassword, app_id, []byte(private_key))
 		initializeInstallationHandlers(app_id, []byte(private_key))
 	}
