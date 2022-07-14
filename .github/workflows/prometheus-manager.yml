@@ -31,7 +31,7 @@ jobs:
     - name: Retrieve current prometheus installations
       id: installations
       run: |
-        run: echo "::set-output name=value::$(az container list --resource-group $RESOURCE_GROUP --query "[?tags.type == 'prometheus'].tags")"
+        echo "::set-output name=value::$(az container list --resource-group $RESOURCE_GROUP --query "[?tags.type == 'prometheus'].tags")"
     
     - name: Retrieve current app installations
       uses: helaili/github-app-installations@main
