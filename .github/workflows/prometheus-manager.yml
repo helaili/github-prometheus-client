@@ -33,10 +33,15 @@ jobs:
       run: |
         echo "::set-output name=value::$(az container list --resource-group $RESOURCE_GROUP --query "[?tags.type == 'prometheus'].tags")"
     
+    - name: Restore the key format
+      id: restoreKey
+      run: |
+        echo "::set-output name=value::$(echo ${{ secrets.PRIVATE_KEY  }} | sed 's/\^/\n/g'"
+    
     - name: Retrieve current app installations
       uses: helaili/github-app-installations@main
       with:
-        private-key: ${{ secrets.PRIVATE_KEY }}
+        private-key: ${{ steps.restoreKey.outputs.value }}
         app-id: ${{ secrets.APP_ID }}
     
    
