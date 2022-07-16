@@ -36,7 +36,8 @@ jobs:
     - name: Restore the key format
       id: restoreKey
       run: |
-        privateKey=echo ${{ secrets.PRIVATE_KEY  }} | sed 's/\^/\n/g'
+        privateKey=$(echo ${{ secrets.PRIVATE_KEY  }} | sed 's/\^/\n/g')
+        echo ${privateKey}
         privateKey="${privateKey//'%'/'%25'}"
         privateKey="${privateKey//'%'/'%25'}"
         privateKey="${privateKey//$'\n'/'%0A'}"
