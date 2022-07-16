@@ -49,3 +49,13 @@ jobs:
       with:
         private-key: ${{ steps.restoreKey.outputs.value }}
         app-id: ${{ secrets.APP_ID }}
+    
+    - name: Process installations
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const installations=JSON.parse(${{ steps.installations.outputs.value }})
+          console.log(installations)
+          for (const installation of installations) {
+            console.log(installation.name)
+          }
