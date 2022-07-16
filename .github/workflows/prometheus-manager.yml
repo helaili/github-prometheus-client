@@ -36,7 +36,11 @@ jobs:
     - name: Restore the key format
       id: restoreKey
       run: |
-        echo "::set-output name=value::$(echo ${{ secrets.PRIVATE_KEY  }} | sed 's/\^/\\n/g')"
+        echo "::set-output name=value::$(echo ${{ secrets.PRIVATE_KEY  }} | sed 's/\^/\n/g')"
+    
+    - name: Debug
+      run: |
+        echo ${{ steps.restoreKey.outputs.value }}
     
     - name: Retrieve current app installations
       uses: helaili/github-app-installations@main
