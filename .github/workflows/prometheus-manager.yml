@@ -43,10 +43,6 @@ jobs:
         privateKey="${privateKey//$'\r'/'%0D'}"
         echo "::set-output name=value::${privateKey}"
     
-    - name: Debug
-      run: |
-        echo ${{ steps.restoreKey.outputs.value }}
-    
     - name: Retrieve current app installations
       uses: helaili/github-app-installations@main
       with:
