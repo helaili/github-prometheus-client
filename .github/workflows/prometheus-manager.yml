@@ -54,8 +54,11 @@ jobs:
       uses: actions/github-script@v6
       with:
         script: |
+          console.log(${{ steps.installations.outputs.value }})
+          /*
           const installations=JSON.parse(${{ steps.installations.outputs.value }})
           console.log(installations)
           for (const installation of installations) {
             console.log(installation.name)
           }
+          */
