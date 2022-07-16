@@ -36,7 +36,8 @@ jobs:
     - name: Restore the key format
       id: restoreKey
       run: |
-        echo "::set-output name=value::$(cat "$(echo ${{ secrets.PRIVATE_KEY  }} | sed 's/\^/\n/g')")"
+        privateKey=echo ${{ secrets.PRIVATE_KEY  }} | sed 's/\^/\n/g'
+        echo "::set-output name=value::'$(echo $privateKey)'"
     
     - name: Debug
       run: |
