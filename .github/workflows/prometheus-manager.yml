@@ -37,14 +37,11 @@ jobs:
       id: restoreKey
       run: |
         privateKey=$(echo ${{ secrets.PRIVATE_KEY  }} | sed 's/\^/\n/g')
-        echo ${privateKey}
         privateKey="${privateKey//'%'/'%25'}"
         privateKey="${privateKey//'%'/'%25'}"
         privateKey="${privateKey//$'\n'/'%0A'}"
         privateKey="${privateKey//$'\r'/'%0D'}"
-        echo ${privateKey}
         echo "::set-output name=value::${privateKey}"
-
     
     - name: Debug
       run: |
