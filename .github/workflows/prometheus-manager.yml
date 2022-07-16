@@ -31,7 +31,9 @@ jobs:
     - name: Retrieve current prometheus installations
       id: installations
       run: |
-        echo "::set-output name=value::$(az container list --resource-group $RESOURCE_GROUP --query "[?tags.type == 'prometheus'].tags")"
+        installations=$(az container list --resource-group $RESOURCE_GROUP --query "[?tags.type == 'prometheus'].tags")
+        installations=${installations//$'\n'/}
+        echo "::set-output name=value::${installations}"
     
     - name: Restore the key format
       id: restoreKey
