@@ -41,6 +41,7 @@ jobs:
         privateKey="${privateKey//'%'/'%25'}"
         privateKey="${privateKey//$'\n'/'%0A'}"
         privateKey="${privateKey//$'\r'/'%0D'}"
+        echo "::add-mask::${privateKey}"
         echo "::set-output name=value::${privateKey}"
     
     - name: Retrieve current app installations
