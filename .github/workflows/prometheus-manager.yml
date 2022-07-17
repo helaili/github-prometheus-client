@@ -58,10 +58,10 @@ jobs:
       with:
         script: |
           console.log(${{ steps.promInstalls.outputs.value }})
-          console.log(${{ steps.appInstalls.outputs.value }})
+          console.log(${{ steps.appInstalls.outputs.installations }})
 
           const promInstalls=JSON.parse(${{ steps.promInstalls.outputs.value }})
-          const appInstalls=JSON.parse(${{ steps.appInstalls.outputs.value }})
+          const appInstalls=JSON.parse(${{ steps.appInstalls.outputs.installations }})
 
           for (const promInstall of promInstalls) {
             console.log(`Checking prometheus installation ${promInstall.name}`)
