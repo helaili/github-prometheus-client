@@ -74,7 +74,7 @@ jobs:
               if (promInstall.name == appInstall.id) {
                 console.log('Found match')
                 found = true
-                appInstalls.delete(index)
+                appInstalls.splice(index, 1)
                 break;
               }
             }
