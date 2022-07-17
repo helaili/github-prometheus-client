@@ -57,14 +57,14 @@ jobs:
       uses: actions/github-script@v6
       with:
         script: |
-          console.log(${{ steps.promInstalls.outputs.value }})
-          console.log(${{ steps.appInstalls.outputs.installations }})
-
           const promInstalls=${{ steps.promInstalls.outputs.value }}
           const appInstalls=${{ steps.appInstalls.outputs.installations }}
 
+          console.log(promInstalls)
+          console.log(appInstalls)
+
           for (const promInstall of promInstalls) {
-            console.log(`Checking prometheus installation ${promInstall.name}`)
+            console.log(`Checking prometheus installation ${promInstall.name} against ${appInstalls.length} app installations`)
             for (const [index, appInstall] of appInstalls) {
               console.log(`Checking for match with ${appInstall.id}`)
               if (promInstall.name == appInstall.id) {
