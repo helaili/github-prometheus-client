@@ -65,12 +65,23 @@ jobs:
 
           for (const promInstall of promInstalls) {
             console.log(`Checking prometheus installation ${promInstall.name} against ${appInstalls.length} app installations`)
-            for (const [index, appInstall] of appInstalls) {
+            let found = false
+
+            for (let index = 0; index < appInstalls.length; index++) {
+              const appInstall = appInstalls[index]
+
               console.log(`Checking for match with ${appInstall.id}`)
               if (promInstall.name == appInstall.id) {
                 console.log('Found match')
+                found = true
                 appInstalls.delete(index)
                 break;
               }
             }
+
+            if (!found) {
+              console.log(`Deleting prometheus installation ${promInstall.name}`)
+              // az container delete --resource-group $RESOURCE_GROUP --name ${promInstall.name}
+            }
+
           }
