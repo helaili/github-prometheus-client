@@ -85,3 +85,8 @@ jobs:
             }
 
           }
+
+          for (const appInstall of appInstalls) {
+            console.log(`Creating prometheus installation ${appInstall.id}`)
+            // az container create --resource-group $RESOURCE_GROUP --name ${appInstall.id} --image ${IMAGE_NAME} --ip-address Public --dns-name ${appInstall.id} --ports 8080 --environment-variables APP_ID=${appInstall.id} PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
+          }
