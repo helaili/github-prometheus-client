@@ -29,7 +29,7 @@ jobs:
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
     
     - name: Retrieve current prometheus installations
-      id: installations
+      id: promInstalls
       run: |
         installations=$(az container list --resource-group $RESOURCE_GROUP --query "[?tags.type == 'prometheus'].tags")
         installations=${installations//$'\n'/}
@@ -47,6 +47,7 @@ jobs:
         echo "::set-output name=value::${privateKey}"
     
     - name: Retrieve current app installations
+      id: appInstalls
       uses: helaili/github-app-installations@main
       with:
         private-key: ${{ steps.restoreKey.outputs.value }}
@@ -56,11 +57,20 @@ jobs:
       uses: actions/github-script@v6
       with:
         script: |
-          console.log(${{ steps.installations.outputs.value }})
-          /*
-          const installations=JSON.parse(${{ steps.installations.outputs.value }})
-          console.log(installations)
-          for (const installation of installations) {
-            console.log(installation.name)
+          console.log(${{ steps.promInstalls.outputs.value }})
+          console.log(${{ steps.appInstalls.outputs.value }})
+
+          const promInstalls=JSON.parse(${{ steps.promInstalls.outputs.value }})
+          const appInstalls=JSON.parse(${{ steps.appInstalls.outputs.value }})
+
+          for (const promInstall of promInstalls) {
+            console.log(`Checking prometheus installation ${promInstall.name}`)
+            for (const [index, appInstall] of appInstalls) {
+              console.log(`Checking for match with ${appInstall.id}`)
+              if (promInstall.name == appInstall.id) {
+                console.log('Found match')
+                appInstalls.delete(index)
+                break;
+              }
+            }
           }
-          */
