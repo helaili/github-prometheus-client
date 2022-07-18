@@ -81,7 +81,7 @@ jobs:
 
             if (!found) {
               console.log(`Deleting prometheus installation ${promInstall.name}`)
-              github.repos.createDispatchEvent({
+              github.rest.repos.createDispatchEvent({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 event_type: 'deletePrometheus',
@@ -90,12 +90,11 @@ jobs:
                 }
               })
             }
-
           }
 
           for (const appInstall of appInstalls) {
             console.log(`Creating prometheus installation ${appInstall.id}`)
-            github.repos.createDispatchEvent({
+            github.rest.repos.createDispatchEvent({
               owner: context.repo.owner,
               repo: context.repo.repo,
               event_type: 'installPrometheus',
