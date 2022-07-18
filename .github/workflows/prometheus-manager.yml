@@ -81,6 +81,14 @@ jobs:
 
             if (!found) {
               console.log(`Deleting prometheus installation ${promInstall.name}`)
+              github.repos.createDispatchEvent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                event_type: 'deletePrometheus',
+                client_payload: {
+                  installation: promInstall.name 
+                }
+              })
               // az container delete --resource-group $RESOURCE_GROUP --name ${promInstall.name}
             }
 
@@ -88,5 +96,13 @@ jobs:
 
           for (const appInstall of appInstalls) {
             console.log(`Creating prometheus installation ${appInstall.id}`)
+            github.repos.createDispatchEvent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                event_type: 'installPrometheus',
+                client_payload: {
+                  installation: promInstall.name 
+                }
+              })
             // az container create --resource-group $RESOURCE_GROUP --name ${appInstall.id} --image ${IMAGE_NAME} --ip-address Public --dns-name ${appInstall.id} --ports 8080 --environment-variables APP_ID=${appInstall.id} PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
           }

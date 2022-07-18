@@ -6,6 +6,9 @@ on:
       installation:
         description: 'GitHub App Installion #'
         required: true
+  repository_dispatch:
+    types: [installPrometheus]
+
 
 env:
   RESOURCE_GROUP: GH-Rover
@@ -24,6 +27,16 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
+
+    - name: Figure out the installation
+      id: installation
+      run: |
+        # Is this a workflow or a repository dispatch?
+        if [[ $GITHUB_EVENT_NAME == "workflow_dispatch" ]]; then
+          echo "::set-output name=value::${{ github.event.inputs.installation }}"
+        else
+          echo "::set-output name=value::${{ github.event.client_payload.installation }}"
+        fi
     
     - name: Azure Login
       uses: Azure/login@v1.4.4
@@ -35,7 +48,7 @@ jobs:
     - name: Create storage
       run: |
         az deployment group create --resource-group ${{ env.RESOURCE_GROUP }} --template-file deploy/prometheus-storage.bicep \
-          --parameters storageName=${{ env.STORAGE_NAME }} installation=${{github.event.inputs.installation}}
+          --parameters storageName=${{ env.STORAGE_NAME }} installation=${{steps.installation.outputs.value}}
     
     - name: Get storage access key
       id: storageAccessKey
@@ -46,13 +59,13 @@ jobs:
     
     - name: Generate and upload Prometeus configuration file
       run: | 
-        sed -i 's/${installation}/${{github.event.inputs.installation}}/g' deploy/prometheus.yml
-        az storage file upload --account-name ${{ env.STORAGE_NAME }}  --account-key ${{ steps.storageAccessKey.outputs.value }} --share-name prometheus-${{github.event.inputs.installation}}-config --path prometheus.yml --source deploy/prometheus.yml
+        sed -i 's/${installation}/${{steps.installation.outputs.value}}/g' deploy/prometheus.yml
+        az storage file upload --account-name ${{ env.STORAGE_NAME }}  --account-key ${{ steps.storageAccessKey.outputs.value }} --share-name prometheus-${{steps.installation.outputs.value}}-config --path prometheus.yml --source deploy/prometheus.yml
 
     - name: Provision a Prometheus instance
       run: |
         az deployment group create --resource-group ${{ env.RESOURCE_GROUP }} --template-file deploy/prometheus.bicep \
-          --parameters storageName=${{ env.STORAGE_NAME }} installation=${{github.event.inputs.installation}} \
+          --parameters storageName=${{ env.STORAGE_NAME }} installation=${{steps.installation.outputs.value}} \
             virtualNetworkName=${{ env.VNET_NAME }} backendSubnetName=${{ env.BACKEND_SUBNET_NAME }} \
     
    
