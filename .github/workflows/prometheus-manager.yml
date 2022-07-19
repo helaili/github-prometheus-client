@@ -12,6 +12,10 @@ env:
 permissions: 
   id-token: write
   contents: write
+  actions: read
+  checks: write
+  deployments: write
+  statuses: write
 
 jobs:
   manage:
@@ -60,9 +64,6 @@ jobs:
         script: |
           const promInstalls=${{ steps.promInstalls.outputs.value }}
           const appInstalls=${{ steps.appInstalls.outputs.installations }}
-
-          console.log(promInstalls)
-          console.log(appInstalls)
 
           for (const promInstall of promInstalls) {
             console.log(`Checking prometheus installation ${promInstall.name} against ${appInstalls.length} app installations`)
