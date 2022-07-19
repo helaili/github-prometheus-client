@@ -96,12 +96,11 @@ jobs:
 
           for (const appInstall of appInstalls) {
             console.log(`Creating prometheus installation ${appInstall.id}`)
-            await github.rest.repos.createWorkflowDispatch({
+            await github.rest.repos.createDispatchEvent({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'main',
-              workflow_id: 'prometheus-deploy.yml',
-              inputs: {
+              event_type: 'installPrometheus',
+              client_payload: {
                 installation: appInstall.id
               }
             })
