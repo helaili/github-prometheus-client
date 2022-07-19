@@ -96,12 +96,17 @@ jobs:
 
           for (const appInstall of appInstalls) {
             console.log(`Creating prometheus installation ${appInstall.id}`)
-            await github.rest.repos.createDispatchEvent({
+            github.rest.repos.createDispatchEvent({
               owner: context.repo.owner,
               repo: context.repo.repo,
               event_type: 'installPrometheus',
               client_payload: {
                 installation: appInstall.id
               }
+            }).then(() => {
+              console.log(`Created prometheus installation ${appInstall.id}`)
+            }).catch(err => {
+              console.log(`Failed to create prometheus installation ${appInstall.id}`)
+              console.log(err)
             })
           }
