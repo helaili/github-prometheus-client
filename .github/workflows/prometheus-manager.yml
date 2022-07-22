@@ -100,7 +100,7 @@ jobs:
   create:
     strategy: 
       matrix:
-        appId: ${{ needs.manage.outputs.appsInstalled }}
+        appId: ${{ fromJson(needs.manage.outputs.appsInstalled) }}
     uses: helaili/github-prometheus-client/.github/workflows/prometheus-deploy.yml@main
     with:
       installation: ${{ matrix.appId }}
@@ -108,7 +108,7 @@ jobs:
   delete:
     strategy: 
       matrix:
-        appId: ${{ needs.manage.outputs.appsDeleted }}
+        appId: ${{ fromJson(needs.manage.outputs.appsDeleted) }}
     uses: helaili/github-prometheus-client/.github/workflows/prometheus-delete.yml@main
     with:
       installation: ${{ matrix.appId }}
