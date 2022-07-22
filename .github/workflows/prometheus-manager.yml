@@ -118,6 +118,8 @@ jobs:
     uses: helaili/github-prometheus-client/.github/workflows/prometheus-deploy.yml@main
     with:
       installation: ${{ matrix.installation.id }}
+    secrets: inherit
+    
   
   delete:
     needs: manage
@@ -128,3 +130,5 @@ jobs:
     uses: helaili/github-prometheus-client/.github/workflows/prometheus-delete.yml@main
     with:
       installation: ${{ matrix.appId }}
+    secrets: inherit
+    
