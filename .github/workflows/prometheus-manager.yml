@@ -52,7 +52,7 @@ jobs:
         echo "::set-output name=value::${privateKey}"
     
     - name: Retrieve current app installations
-      id: appInstalls
+      id: appsInstalled
       uses: helaili/github-app-installations@main
       with:
         private-key: ${{ steps.restoreKey.outputs.value }}
@@ -60,53 +60,60 @@ jobs:
     
     - name: Process installations
       uses: actions/github-script@v6
+      id: filter
       with:
         script: |
           const promInstalls=${{ steps.promInstalls.outputs.value }}
-          const appInstalls=${{ steps.appInstalls.outputs.installations }}
+          const appsInstalled=${{ steps.appsInstalled.outputs.installations }}
 
+          const appsDeleted = []
+          
           for (const promInstall of promInstalls) {
-            console.log(`Checking prometheus installation ${promInstall.name} against ${appInstalls.length} app installations`)
+            console.log(`Checking prometheus installation ${promInstall.name} against ${appsInstalled.length} app installations`)
             let found = false
 
-            for (let index = 0; index < appInstalls.length; index++) {
-              const appInstall = appInstalls[index]
+            for (let index = 0; index < appsInstalled.length; index++) {
+              const appInstall = appsInstalled[index]
 
               console.log(`Checking for match with ${appInstall.id}`)
               if (promInstall.name == appInstall.id) {
                 console.log('Found match')
                 found = true
-                appInstalls.splice(index, 1)
+                // Removing this app install so at the end we only get apps that need to be installed. 
+                appsInstalled.splice(index, 1)
                 break;
               }
             }
 
             if (!found) {
-              console.log(`Deleting prometheus installation ${promInstall.name}`)
-              github.rest.repos.createDispatchEvent({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                event_type: 'deletePrometheus',
-                client_payload: {
-                  installation: promInstall.name 
-                }
-              })
+              console.log('Match not found')
+              appsDeleted.push(promInstall.name)
             }
           }
 
-          for (const appInstall of appInstalls) {
-            console.log(`Creating prometheus installation ${appInstall.id}`)
-            github.rest.repos.createDispatchEvent({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              event_type: 'installPrometheus',
-              client_payload: {
-                installation: appInstall.id
-              }
-            }).then(() => {
-              console.log(`Created prometheus installation ${appInstall.id}`)
-            }).catch(err => {
-              console.log(`Failed to create prometheus installation ${appInstall.id}`)
-              console.log(err)
-            })
-          }
+          core.setOutput('appsInstalled', appsInstalled)
+          core.setOutput('appsDeleted', appsDeleted)
+
+  create:
+    name: Create Prometheus instances
+    runs-on: ubuntu-latest
+    needs: manage
+    environment: production
+    strategy: 
+      matrix:
+        appId: ${{ steps.filter.outputs.appsInstalled }}
+    uses: helaili/github-prometheus-client/.github/workflows/prometheus-deploy.yml@main
+    with:
+      installation: ${{ matrix.appId }}
+  
+  delete:
+    name: Delete Prometheus instances
+    runs-on: ubuntu-latest
+    needs: manage
+    environment: production
+    strategy: 
+      matrix:
+        appId: ${{ steps.filter.outputs.appsDeleted }}
+    uses: helaili/github-prometheus-client/.github/workflows/prometheus-delete.yml@main
+    with:
+      installation: ${{ matrix.appId }}

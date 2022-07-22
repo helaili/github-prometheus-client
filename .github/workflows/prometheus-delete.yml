@@ -1,0 +1,42 @@
+name: Prometheus Delete
+
+on:
+  workflow_dispatch:
+    inputs:
+      installation:
+        description: 'GitHub App Installion #'
+        required: true
+  workflow_call:
+    inputs:
+      installation:
+        description: 'GitHub App Installion #'
+        required: true
+        type: string
+
+
+env:
+  RESOURCE_GROUP: GH-Rover
+  
+permissions: 
+  id-token: write
+
+jobs:
+  delete:
+    name: Delete
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Azure Login
+      uses: Azure/login@v1.4.4
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+    
+    - name: Delete Prometheus instance 
+      run: |
+        //Delete container instance from Azure
+        echo "Deleting instance"
