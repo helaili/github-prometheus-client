@@ -111,17 +111,17 @@ jobs:
                 
   create:
     needs: manage
-    if: needs.manage.outputs.appsInstalled != ''
+    if: needs.manage.outputs.appsInstalled != '[]'
     strategy: 
       matrix:
-        appId: ${{ fromJSON(needs.manage.outputs.appsInstalled) }}
+        installation: ${{ fromJSON(needs.manage.outputs.appsInstalled) }}
     uses: helaili/github-prometheus-client/.github/workflows/prometheus-deploy.yml@main
     with:
-      installation: ${{ matrix.appId }}
+      installation: ${{ matrix.installation.id }}
   
   delete:
     needs: manage
-    if: needs.manage.outputs.appsDeleted != ''
+    if: needs.manage.outputs.appsDeleted != '[]'
     strategy: 
       matrix:
         appId: ${{ fromJSON(needs.manage.outputs.appsDeleted) }}
