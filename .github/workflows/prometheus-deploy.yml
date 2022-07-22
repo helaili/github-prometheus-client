@@ -24,12 +24,6 @@ permissions:
   id-token: write
 
 jobs:
-  debug:
-    runs-on: ubuntu-latest
-    steps: 
-    - run: |
-        echo 'installation: ${{ inputs.installation }}'
-  
   deploy:
     name: Deploy
     runs-on: ubuntu-latest

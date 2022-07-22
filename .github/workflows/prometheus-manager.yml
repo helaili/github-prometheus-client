@@ -97,19 +97,9 @@ jobs:
 
           core.setOutput('appsInstalled', appsInstalled)
           core.setOutput('appsDeleted', appsDeleted)
-
-          console.log(`appsInstalled: ${appsInstalled}`)
-          console.log(`appsDeleted: ${appsDeleted}`)
-  
-  debug:
-    needs: manage
-    runs-on: ubuntu-latest
-    steps: 
-    - run: |
-        echo '${{ needs.manage.outputs.appsInstalled }}'
-        echo '${{ needs.manage.outputs.appsDeleted }}'
                 
   create:
+    name: Deploy Prometheus instancese
     needs: manage
     if: needs.manage.outputs.appsInstalled != '[]'
     strategy: 
@@ -120,8 +110,8 @@ jobs:
       installation: ${{ matrix.installation.id }}
     secrets: inherit
     
-  
   delete:
+    name: Delete Prometheus instancese
     needs: manage
     if: needs.manage.outputs.appsDeleted != '[]'
     strategy: 
