@@ -99,15 +99,14 @@ jobs:
 
           console.log(`appsInstalled: ${appsInstalled}`)
           console.log(`appsDeleted: ${appsDeleted}`)
+  
   debug:
     needs: manage
     runs-on: ubuntu-latest
     steps: 
-      - run: |
-          echo ${{ fromJson(needs.manage.outputs.appsInstalled) }}
-          echo ${{ needs.manage.outputs.appsInstalled }}
-          echo ${{ fromJson(needs.manage.outputs.appsDeleted) }}
-          echo ${{ needs.manage.outputs.appsDeleted }}
+    - run: |
+        echo '${{ needs.manage.outputs.appsInstalled }}'
+        echo '${{ needs.manage.outputs.appsDeleted }}'
                 
 
   create:
