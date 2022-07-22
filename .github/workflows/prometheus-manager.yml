@@ -96,6 +96,9 @@ jobs:
 
           core.setOutput('appsInstalled', appsInstalled)
           core.setOutput('appsDeleted', appsDeleted)
+
+          console.log(`appsInstalled: ${appsInstalled}`)
+          console.log(`appsDeleted: ${appsDeleted}`)
   debug:
     needs: manage
     runs-on: ubuntu-latest
