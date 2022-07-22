@@ -26,6 +26,7 @@ env:
   REDIS_SERVER_NAME: ghrover-redis
   PRIVATE_DOMAIN_NAME: ghrover-private.com
   COLLECTOR_DNS_NAME: collector
+  APP_ID: 189572
 
 permissions: 
   id-token: write
@@ -45,7 +46,7 @@ jobs:
     - name: Test
       run: make test
       env:
-        APP_ID: ${{ secrets.APP_ID }}
+        APP_ID: ${{ env.APP_ID }}
         PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
 
     - name: Log in to the Container registry
@@ -99,7 +100,7 @@ jobs:
           --template-file deploy/client.bicep \
           --parameters containerGroupName=${{ env.CONTAINER_GROUP_NAME }} \
             registryPassword=${{ secrets.REGISTRY_PASSWORD }} registryUsername=${{ secrets.REGISTRY_USERNAME }} \
-            app_id=${{ secrets.APP_ID }} webhook_secret=${{ secrets.WEBHOOK_SECRET }} private_key=${{ secrets.PRIVATE_KEY }} \
+            app_id=${{ env.APP_ID }} webhook_secret=${{ secrets.WEBHOOK_SECRET }} private_key=${{ secrets.PRIVATE_KEY }} \
             redisServerName=${{ env.REDIS_SERVER_NAME }} \
             virtualNetworkName=${{ env.VNET_NAME }} backendSubnetName=${{ env.BACKEND_SUBNET_NAME }} \
             portNumber=${{ env.PORT }} environment=production

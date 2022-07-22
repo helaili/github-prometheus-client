@@ -8,6 +8,7 @@ env:
   STORAGE_NAME: ghroverstorage
   BACKEND_SUBNET_NAME: backendSubnet
   VNET_NAME: GHRoverVNet
+  APP_ID: 189572
   
 permissions: 
   id-token: write
@@ -59,7 +60,7 @@ jobs:
       uses: helaili/github-app-installations@main
       with:
         private-key: ${{ steps.restoreKey.outputs.value }}
-        app-id: ${{ secrets.APP_ID }}
+        app-id: ${{ env.APP_ID }}
     
     - name: Process installations
       uses: actions/github-script@v6
@@ -110,6 +111,7 @@ jobs:
                 
   create:
     needs: manage
+    if: needs.manage.outputs.appsInstalled != ''
     strategy: 
       matrix:
         appId: ${{ fromJSON(needs.manage.outputs.appsInstalled) }}
@@ -119,6 +121,7 @@ jobs:
   
   delete:
     needs: manage
+    if: needs.manage.outputs.appsDeleted != ''
     strategy: 
       matrix:
         appId: ${{ fromJSON(needs.manage.outputs.appsDeleted) }}
