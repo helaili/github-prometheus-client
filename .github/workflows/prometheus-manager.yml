@@ -22,6 +22,9 @@ jobs:
     name: Manage
     runs-on: ubuntu-latest
     environment: production
+    outputs: 
+      appsInstalled: ${{ steps.filter.outputs.appsInstalled }}
+      appsDeleted: ${{ steps.filter.outputs.appsDeleted }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -101,7 +104,7 @@ jobs:
     environment: production
     strategy: 
       matrix:
-        appId: ${{ steps.filter.outputs.appsInstalled }}
+        appId: ${{ needs.manage.outputs.appsInstalled }}
     uses: helaili/github-prometheus-client/.github/workflows/prometheus-deploy.yml@main
     with:
       installation: ${{ matrix.appId }}
@@ -113,7 +116,7 @@ jobs:
     environment: production
     strategy: 
       matrix:
-        appId: ${{ steps.filter.outputs.appsDeleted }}
+        appId: ${{ needs.manage.outputs.appsDeleted }}
     uses: helaili/github-prometheus-client/.github/workflows/prometheus-delete.yml@main
     with:
       installation: ${{ matrix.appId }}
