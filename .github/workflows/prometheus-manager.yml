@@ -96,8 +96,9 @@ jobs:
 
           core.setOutput('appsInstalled', appsInstalled)
           core.setOutput('appsDeleted', appsDeleted)
-
+  
   create:
+    needs: manage
     strategy: 
       matrix:
         appId: ${{ fromJson(needs.manage.outputs.appsInstalled) }}
@@ -106,6 +107,7 @@ jobs:
       installation: ${{ matrix.appId }}
   
   delete:
+    needs: manage
     strategy: 
       matrix:
         appId: ${{ fromJson(needs.manage.outputs.appsDeleted) }}
