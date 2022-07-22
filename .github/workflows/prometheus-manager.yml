@@ -108,12 +108,11 @@ jobs:
         echo '${{ needs.manage.outputs.appsInstalled }}'
         echo '${{ needs.manage.outputs.appsDeleted }}'
                 
-
   create:
     needs: manage
     strategy: 
       matrix:
-        appId: ${{ fromJson(needs.manage.outputs.appsInstalled) }}
+        appId: ${{ fromJSON(needs.manage.outputs.appsInstalled) }}
     uses: helaili/github-prometheus-client/.github/workflows/prometheus-deploy.yml@main
     with:
       installation: ${{ matrix.appId }}
@@ -122,7 +121,7 @@ jobs:
     needs: manage
     strategy: 
       matrix:
-        appId: ${{ fromJson(needs.manage.outputs.appsDeleted) }}
+        appId: ${{ fromJSON(needs.manage.outputs.appsDeleted) }}
     uses: helaili/github-prometheus-client/.github/workflows/prometheus-delete.yml@main
     with:
       installation: ${{ matrix.appId }}
