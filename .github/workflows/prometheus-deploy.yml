@@ -29,7 +29,6 @@ jobs:
     steps: 
     - run: |
         echo 'installation: ${{ inputs.installation }}'
-        echo 'installation ${{ github.event.inputs.installation }}'
   
   deploy:
     name: Deploy
@@ -49,7 +48,7 @@ jobs:
     - name: Create storage
       run: |
         az deployment group create --resource-group ${{ env.RESOURCE_GROUP }} --template-file deploy/prometheus-storage.bicep \
-          --parameters storageName=${{ env.STORAGE_NAME }} installation=${{github.event.inputs.installation}}
+          --parameters storageName=${{ env.STORAGE_NAME }} installation=${{inputs.installation}}
     
     - name: Get storage access key
       id: storageAccessKey
@@ -60,13 +59,13 @@ jobs:
     
     - name: Generate and upload Prometeus configuration file
       run: | 
-        sed -i 's/${installation}/${{github.event.inputs.installation}}/g' deploy/prometheus.yml
-        az storage file upload --account-name ${{ env.STORAGE_NAME }}  --account-key ${{ steps.storageAccessKey.outputs.value }} --share-name prometheus-${{github.event.inputs.installation}}-config --path prometheus.yml --source deploy/prometheus.yml
+        sed -i 's/${installation}/${{inputs.installation}}/g' deploy/prometheus.yml
+        az storage file upload --account-name ${{ env.STORAGE_NAME }}  --account-key ${{ steps.storageAccessKey.outputs.value }} --share-name prometheus-${{inputs.installation}}-config --path prometheus.yml --source deploy/prometheus.yml
 
     - name: Provision a Prometheus instance
       run: |
         az deployment group create --resource-group ${{ env.RESOURCE_GROUP }} --template-file deploy/prometheus.bicep \
-          --parameters storageName=${{ env.STORAGE_NAME }} installation=${{github.event.inputs.installation}} \
+          --parameters storageName=${{ env.STORAGE_NAME }} installation=${{inputs.installation}} \
             virtualNetworkName=${{ env.VNET_NAME }} backendSubnetName=${{ env.BACKEND_SUBNET_NAME }} \
     
    
