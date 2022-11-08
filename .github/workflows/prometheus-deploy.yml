@@ -76,7 +76,7 @@ jobs:
     - name: Get IP address
       id: ip
       run: |
-        ip=$(az container show --resource-group $RESOURCE_GROUP --name prometheus-=${{inputs.installation}}-ghrover --query "ipAddress.ip" --out tsv)
+        ip=$(az container show --resource-group $RESOURCE_GROUP --name prometheus-${{inputs.installation}}-ghrover --query "ipAddress.ip" --out tsv)
         echo "ip=${ip}" >> $GITHUB_OUTPUT
     
     - name: Update the application gateway
