@@ -31,4 +31,6 @@ jobs:
           echo "instanceName=$instanceName" >> $GITHUB_OUTPUT
           echo "instanceFullName=$instanceFullName" >> $GITHUB_OUTPUT
       - name: check
-        run: echo ${{ steps.instanceName.outputs.instanceName }}
+        run: |
+          echo ${{ steps.instanceName.outputs.instanceName }}
+          echo ${{ steps.instanceName.outputs.instanceFullName }}
