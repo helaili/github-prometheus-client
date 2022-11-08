@@ -28,3 +28,5 @@ jobs:
         run: |
           x=12
           echo "instanceName=$x" >> $GITHUB_OUTPUT
+      - name: check
+        run: echo ${{ steps.instanceName.outputs.instanceName }}
