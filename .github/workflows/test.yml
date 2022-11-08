@@ -1,0 +1,32 @@
+name: Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      installation:
+        description: 'GitHub App Installion #'
+        required: true
+  workflow_call:
+    inputs:
+      installation:
+        description: 'GitHub App Installion #'
+        required: true
+        type: string
+
+
+env:
+  DOMAIN_NAME: prometheus.carbonhub.io
+  
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Generare instance name
+        id: instanceName
+        run: |
+          instanceName="i${{ inputs.installation }}"
+          instanceFullName="${{instanceName}}.${{ env.DOMAIN_NAME }}"
+          echo "instanceName=${instanceName}" >> $GITHUB_OUTPUT
+          echo "instanceFullName=${instanceFullName}" >> $GITHUB_OUTPUT
