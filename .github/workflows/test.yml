@@ -26,7 +26,7 @@ jobs:
       - name: Generare instance name
         id: instanceName
         run: |
-          instanceName="i${{ inputs.installation }}"
-          instanceFullName="${{instanceName}}.${{ env.DOMAIN_NAME }}"
-          echo "instanceName=${instanceName}" >> $GITHUB_OUTPUT
+          xx="i${{ inputs.installation }}"
+          instanceFullName="${{xx}}.${{ env.DOMAIN_NAME }}"
+          echo "instanceName=${xx}" >> $GITHUB_OUTPUT
           echo "instanceFullName=${instanceFullName}" >> $GITHUB_OUTPUT
