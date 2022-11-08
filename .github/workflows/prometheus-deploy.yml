@@ -81,7 +81,7 @@ jobs:
     
     - name: Update the application gateway
       run: |
-        az network application-gateway address-pool create --resource-group $RESOURCE_GROUP --gateway-name $APP_GW_NAME \ 
+        az network application-gateway address-pool create --resource-group $RESOURCE_GROUP --gateway-name $APP_GW_NAME \
           --name ${{ steps.instanceName.outputs.instanceName }} --servers ${{ steps.ip.outputs.ip }}
         az network application-gateway http-listener create --resource-group $RESOURCE_GROUP --gateway-name $APP_GW_NAME \
           --name ${{ steps.instanceName.outputs.instanceFullName }} --frontend-ip $APP_GATEWAY_FRONTEND_IP --frontend-port $APP_GATEWAY_FRONTEND_PORT \
