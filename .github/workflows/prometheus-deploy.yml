@@ -73,13 +73,13 @@ jobs:
           --parameters storageName=${{ env.STORAGE_NAME }} installation=${{inputs.installation}} \
             virtualNetworkName=${{ env.VNET_NAME }} backendSubnetName=${{ env.BACKEND_SUBNET_NAME }} \
 
-     - name: Get IP address
-       id: ip
-       run: |
-         ip=$(az container show --resource-group $RESOURCE_GROUP --name prometheus-=${{inputs.installation}}-ghrover --query "ipAddress.ip" --out tsv)
-         echo "ip=${ip}" >> $GITHUB_OUTPUT
+    - name: Get IP address
+      id: ip
+      run: |
+        ip=$(az container show --resource-group $RESOURCE_GROUP --name prometheus-=${{inputs.installation}}-ghrover --query "ipAddress.ip" --out tsv)
+        echo "ip=${ip}" >> $GITHUB_OUTPUT
     
-    - name: Update the application gateway (wip)
+    - name: Update the application gateway
       run: |
         az network application-gateway address-pool create --resource-group $RESOURCE_GROUP --gateway-name $APP_GW_NAME \ 
           --name ${{ steps.instanceName.outputs.instanceName }} --servers ${{ steps.ip.outputs.ip }}
