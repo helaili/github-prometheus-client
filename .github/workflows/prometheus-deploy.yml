@@ -56,7 +56,7 @@ jobs:
         echo "::add-mask::${storageAccessKey}"
         echo "value=${storageAccessKey}" >> $GITHUB_OUTPUT
     
-    - name: Generate and upload Prometeus configuration file
+    - name: Generate and upload Prometheus configuration file
       run: | 
         sed -i 's/${installation}/${{inputs.installation}}/g' deploy/prometheus.yml
         az storage file upload --account-name ${{ env.STORAGE_NAME }}  --account-key ${{ steps.storageAccessKey.outputs.value }} --share-name prometheus-${{inputs.installation}}-config --path prometheus.yml --source deploy/prometheus.yml

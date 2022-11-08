@@ -16,6 +16,10 @@ on:
 
 env:
   RESOURCE_GROUP: GH-Rover
+  STORAGE_NAME: ghroverstorage
+  APP_GW_NAME: GHRoverAppGateway
+  DOMAIN_NAME: prometheus.carbonhub.io
+  
   
 permissions: 
   id-token: write
@@ -35,8 +39,37 @@ jobs:
         client-id: ${{ secrets.AZURE_CLIENT_ID }}
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Generare instance name
+      id: instanceName
+      run: |
+        instanceName=i${{ inputs.installation }}
+        instanceFullName="$instanceName.${{ env.DOMAIN_NAME }}"
+        echo "instanceName=$instanceName" >> $GITHUB_OUTPUT
+        echo "instanceFullName=$instanceFullName" >> $GITHUB_OUTPUT
+    
+    - name: Get storage access key
+      id: storageAccessKey
+      run: |
+        storageAccessKey=$(az storage account keys list --resource-group  ${{ env.RESOURCE_GROUP }} --account-name ${{ env.STORAGE_NAME }} --query "[0].value" --out tsv)
+        echo "::add-mask::${storageAccessKey}"
+        echo "value=${storageAccessKey}" >> $GITHUB_OUTPUT
+    
+    - name: Update the application gateway
+      run: | 
+        az network application-gateway rule delete --resource-group ${{ env.RESOURCE_GROUP }} --gateway-name ${{ env.APP_GW_NAME }} \
+           --name ${{ steps.instanceName.outputs.instanceFullName }}
+        az network application-gateway http-listener delete --resource-group ${{ env.RESOURCE_GROUP }} --gateway-name ${{ env.APP_GW_NAME }} \
+          --name ${{ steps.instanceName.outputs.instanceFullName }} 
+        az network application-gateway address-pool delete --resource-group ${{ env.RESOURCE_GROUP }} --gateway-name ${{ env.APP_GW_NAME }} \
+          --name ${{ steps.instanceName.outputs.instanceName }}
     
     - name: Delete Prometheus instance 
       run: |
-        //Delete container instance from Azure
-        echo "Deleting instance"
+        az container delete --resource-group $RESOURCE_GROUP --name  prometheus-${{ inputs.installation }}-ghrover -y
+
+    - name: Delete Prometheus storage
+      run: |
+        az storage share delete --name prometheus-${{ inputs.installation }}-config  --account-name ${{ env.STORAGE_NAME }} --account-key ${{ steps.storageAccessKey.outputs.value }}
+        az storage share delete --name prometheus-${{ inputs.installation }}-data  --account-name ${{ env.STORAGE_NAME }} --account-key ${{ steps.storageAccessKey.outputs.value }}
+
