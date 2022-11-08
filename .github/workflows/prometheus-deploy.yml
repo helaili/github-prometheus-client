@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       installation:
-        description: 'GitHub App Installion #'
+        description: 'GitHub App Installation #'
         required: true
   workflow_call:
     inputs:
       installation:
-        description: 'GitHub App Installion #'
+        description: 'GitHub App Installation #'
         required: true
         type: string
 
