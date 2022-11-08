@@ -19,6 +19,9 @@ env:
   STORAGE_NAME: ghroverstorage
   BACKEND_SUBNET_NAME: backendSubnet
   VNET_NAME: GHRoverVNet
+  APP_GATEWAY_FRONTEND_IP: appGatewayPublicFrontendIP
+  APP_GATEWAY_FRONTEND_PORT: port_80
+  DOMAIN_NAME: prometheus.carbonhub.io
   
 permissions: 
   id-token: write
@@ -49,17 +52,40 @@ jobs:
       run: |
         storageAccessKey=$(az storage account keys list --resource-group  ${{ env.RESOURCE_GROUP }} --account-name ${{ env.STORAGE_NAME }} --query "[0].value" --out tsv)
         echo "::add-mask::${storageAccessKey}"
-        echo "::set-output name=value::${storageAccessKey}"
+        echo "value=${storageAccessKey}" >> $GITHUB_OUTPUT
     
     - name: Generate and upload Prometeus configuration file
       run: | 
         sed -i 's/${installation}/${{inputs.installation}}/g' deploy/prometheus.yml
         az storage file upload --account-name ${{ env.STORAGE_NAME }}  --account-key ${{ steps.storageAccessKey.outputs.value }} --share-name prometheus-${{inputs.installation}}-config --path prometheus.yml --source deploy/prometheus.yml
 
+    - name: Generare instance name
+      id: instanceName
+      run: |
+        instanceName="i${{inputs.installation}}"
+        instanceFullName="${{instanceName}}.${{ env.DOMAIN_NAME }}"
+        echo "instanceName=${instanceName}" >> $GITHUB_OUTPUT
+        echo "instanceFullName=${instanceFullName}" >> $GITHUB_OUTPUT
+
     - name: Provision a Prometheus instance
       run: |
         az deployment group create --resource-group ${{ env.RESOURCE_GROUP }} --template-file deploy/prometheus.bicep \
           --parameters storageName=${{ env.STORAGE_NAME }} installation=${{inputs.installation}} \
             virtualNetworkName=${{ env.VNET_NAME }} backendSubnetName=${{ env.BACKEND_SUBNET_NAME }} \
+
+     - name: Get IP address
+       id: ip
+       run: |
+         ip=$(az container show --resource-group $RESOURCE_GROUP --name prometheus-=${{inputs.installation}}-ghrover --query "ipAddress.ip" --out tsv)
+         echo "ip=${ip}" >> $GITHUB_OUTPUT
     
-   
+    - name: Update the application gateway (wip)
+      run: |
+        az network application-gateway address-pool create --resource-group $RESOURCE_GROUP --gateway-name $APP_GW_NAME \ 
+          --name ${{ steps.instanceName.outputs.instanceName }} --servers ${{ steps.ip.outputs.ip }}
+        az network application-gateway http-listener create --resource-group $RESOURCE_GROUP --gateway-name $APP_GW_NAME \
+          --name ${{ steps.instanceName.outputs.instanceFullName }} --frontend-ip $APP_GATEWAY_FRONTEND_IP --frontend-port $APP_GATEWAY_FRONTEND_PORT \
+          --host-name  ${{ steps.instanceName.outputs.instanceFullName }}
+        az network application-gateway rule create --resource-group $RESOURCE_GROUP --gateway-name $APP_GW_NAME \
+           --name ${{ steps.instanceName.outputs.instanceFullName }} --rule-type Basic --priority 100 --http-settings prometheusBackendSetting \
+           --http-listener ${{ steps.instanceName.outputs.instanceFullName }} --address-pool ${{ steps.instanceName.outputs.instanceName }}
