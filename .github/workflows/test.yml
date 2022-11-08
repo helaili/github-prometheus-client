@@ -26,7 +26,7 @@ jobs:
       - name: Generare instance name
         id: instanceName
         run: |
-          x=12
-          echo "instanceName=$x" >> $GITHUB_OUTPUT
+          instanceName=i${{ inputs.installation }}
+          echo "instanceName=$instanceName" >> $GITHUB_OUTPUT
       - name: check
         run: echo ${{ steps.instanceName.outputs.instanceName }}
