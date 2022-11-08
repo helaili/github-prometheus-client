@@ -47,17 +47,21 @@ func (m RedisCache) set(event *github.WorkflowRunEvent) {
 
 func (m RedisCache) get(event *github.WorkflowJobEvent) string {
 	key := fmt.Sprintf("%d-%d", event.GetInstallation().GetID(), event.GetWorkflowJob().GetRunID())
-	worfklowName := m.client.Get(context.Background(), key)
+	worfklowName, getErr := m.client.Get(context.Background(), key).Result()
+	if getErr != nil {
+		log.Printf("error getting key %s in Redis: err=%s\n", key, getErr)
+	}
 
 	// Cache miss, we need to retrieve the workflow name from github
-	if worfklowName == nil {
+	if getErr != nil || worfklowName == "" {
 		workflowName := m.getWorkflowNameFromGitHub(event)
+
 		err := m.client.Set(context.Background(), key, workflowName, time.Hour*24*35)
 		if err != nil {
 			log.Printf("error setting key %s in Redis after a missed cache: err=%s\n", key, err)
 		}
 		return workflowName
 	} else {
-		return worfklowName.String()
+		return worfklowName
 	}
 }
