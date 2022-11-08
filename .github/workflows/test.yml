@@ -27,6 +27,8 @@ jobs:
         id: instanceName
         run: |
           instanceName=i${{ inputs.installation }}
+          instanceFullName="$instanceName.${{ env.DOMAIN_NAME }}"
           echo "instanceName=$instanceName" >> $GITHUB_OUTPUT
+          echo "instanceFullName=$instanceFullName" >> $GITHUB_OUTPUT
       - name: check
         run: echo ${{ steps.instanceName.outputs.instanceName }}
