@@ -21,6 +21,7 @@ env:
   VNET_NAME: GHRoverVNet
   APP_GATEWAY_FRONTEND_IP: appGatewayPublicFrontendIP
   APP_GATEWAY_FRONTEND_PORT: port_80
+  APP_GATEWAY_BACKEND_SETTING: prometheusBackendSetting
   DOMAIN_NAME: prometheus.carbonhub.io
   
 permissions: 
@@ -76,16 +77,16 @@ jobs:
     - name: Get IP address
       id: ip
       run: |
-        ip=$(az container show --resource-group $RESOURCE_GROUP --name prometheus-${{inputs.installation}}-ghrover --query "ipAddress.ip" --out tsv)
+        ip=$(az container show --resource-group ${{ env.RESOURCE_GROUP }} --name prometheus-${{inputs.installation}}-ghrover --query "ipAddress.ip" --out tsv)
         echo "ip=${ip}" >> $GITHUB_OUTPUT
     
     - name: Update the application gateway
       run: |
-        az network application-gateway address-pool create --resource-group $RESOURCE_GROUP --gateway-name $APP_GW_NAME \
+        az network application-gateway address-pool create --resource-group ${{ env.RESOURCE_GROUP }} --gateway-name ${{ env.$APP_GW_NAME }} \
           --name ${{ steps.instanceName.outputs.instanceName }} --servers ${{ steps.ip.outputs.ip }}
-        az network application-gateway http-listener create --resource-group $RESOURCE_GROUP --gateway-name $APP_GW_NAME \
-          --name ${{ steps.instanceName.outputs.instanceFullName }} --frontend-ip $APP_GATEWAY_FRONTEND_IP --frontend-port $APP_GATEWAY_FRONTEND_PORT \
+        az network application-gateway http-listener create --resource-group ${{ env.RESOURCE_GROUP }} --gateway-name ${{ env.$APP_GW_NAME }} \
+          --name ${{ steps.instanceName.outputs.instanceFullName }} --frontend-ip ${{ env.APP_GATEWAY_FRONTEND_IP }} --frontend-port ${{ env.APP_GATEWAY_FRONTEND_PORT }} \
           --host-name  ${{ steps.instanceName.outputs.instanceFullName }}
-        az network application-gateway rule create --resource-group $RESOURCE_GROUP --gateway-name $APP_GW_NAME \
-           --name ${{ steps.instanceName.outputs.instanceFullName }} --rule-type Basic --priority 100 --http-settings prometheusBackendSetting \
+        az network application-gateway rule create --resource-group ${{ env.RESOURCE_GROUP }} --gateway-name ${{ env.$APP_GW_NAME }} \
+           --name ${{ steps.instanceName.outputs.instanceFullName }} --rule-type Basic --priority 100 --http-settings ${{ env.APP_GATEWAY_BACKEND_SETTING }} \
            --http-listener ${{ steps.instanceName.outputs.instanceFullName }} --address-pool ${{ steps.instanceName.outputs.instanceName }}
