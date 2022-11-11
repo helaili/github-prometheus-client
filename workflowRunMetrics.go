@@ -16,11 +16,13 @@ func NewWorkflowRunMetrics(registry *prometheus.Registry, cache ICache) *Workflo
 	m := new(WorkflowRunMetrics)
 	m.counters = make(map[string]*prometheus.CounterVec)
 	m.histograms = make(map[string]*prometheus.HistogramVec)
+	m.gauges = make(map[string]*prometheus.GaugeVec)
 	m.cache = cache
 	m.registry = registry
 
 	m.intializeCounters()
 	m.intializeHistograms()
+	m.intializeGauges()
 
 	return m
 }
@@ -54,6 +56,15 @@ func (m WorkflowRunMetrics) report(eventType string, event *github.WorkflowRunEv
 
 			histogram.WithLabelValues(event.GetOrg().GetLogin(), event.GetRepo().GetName(), event.GetWorkflow().GetName(), installationID).Observe(float64(end.Sub(start).Milliseconds()))
 		}
+
+		gauge, found := m.getGauge(eventType, "duration")
+		if found {
+			// This is elapse time, not billing time.
+			start := event.GetWorkflowRun().GetCreatedAt().Time
+			end := event.GetWorkflowRun().GetUpdatedAt().Time
+
+			gauge.WithLabelValues(event.GetOrg().GetLogin(), event.GetRepo().GetName(), event.GetWorkflow().GetName(), installationID).Set(float64(end.Sub(start).Milliseconds()))
+		}
 	}
 }
 
@@ -70,6 +81,21 @@ func (m WorkflowRunMetrics) intializeHistograms() {
 
 	for histogramName := range m.histograms {
 		m.registry.MustRegister(m.histograms[histogramName])
+	}
+}
+
+func (m WorkflowRunMetrics) intializeGauges() {
+	m.gauges["github_actions_workflow_run_duration_gauge"] = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Namespace: "github_actions",
+		Subsystem: "workflow_run",
+		Name:      "duration",
+		Help:      "The duration of workflow runs",
+	},
+		[]string{"org", "repo", "workflow", "installation"},
+	)
+
+	for gaugeName := range m.gauges {
+		m.registry.MustRegister(m.gauges[gaugeName])
 	}
 }
 
