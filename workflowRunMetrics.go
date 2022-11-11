@@ -57,7 +57,7 @@ func (m WorkflowRunMetrics) report(eventType string, event *github.WorkflowRunEv
 			histogram.WithLabelValues(event.GetOrg().GetLogin(), event.GetRepo().GetName(), event.GetWorkflow().GetName(), installationID).Observe(float64(end.Sub(start).Milliseconds()))
 		}
 
-		gauge, found := m.getGauge(eventType, "duration")
+		gauge, found := m.getGauge(eventType, "duration_gauge")
 		if found {
 			// This is elapse time, not billing time.
 			start := event.GetWorkflowRun().GetCreatedAt().Time
