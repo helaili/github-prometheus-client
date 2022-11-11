@@ -88,7 +88,7 @@ func (m WorkflowRunMetrics) intializeGauges() {
 	m.gauges["github_actions_workflow_run_duration_gauge"] = prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Namespace: "github_actions",
 		Subsystem: "workflow_run",
-		Name:      "duration",
+		Name:      "duration_gauge",
 		Help:      "The duration of workflow runs",
 	},
 		[]string{"org", "repo", "workflow", "installation"},
